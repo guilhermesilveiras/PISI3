@@ -85,6 +85,3 @@ if "McMeal (USD)" in data.columns and "Média Salário (USD)" in data.columns:
     st.write(estatisticas)
 else:
     st.write("As colunas 'McMeal (USD)' ou 'Média Salário (USD)' não foram encontradas nos dados.")
-
-# Rodapé
-st.write("Desenvolvido com Streamlit e Plotly")

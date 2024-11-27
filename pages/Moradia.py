@@ -51,6 +51,3 @@ st.plotly_chart(fig_rent_country)
 st.write("### Estatísticas Descritivas: Custo de Aluguel de 1 Quarto no Centro por País")
 stats_rent = avg_rent_by_country.describe()
 st.write(stats_rent)
-
-# Rodapé
-st.write("Desenvolvido com ❤️ para análise de viagens!")

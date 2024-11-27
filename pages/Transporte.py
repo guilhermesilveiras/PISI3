@@ -121,6 +121,3 @@ st.plotly_chart(fig)
 st.write("### Estatísticas Descritivas: Preço do Km do Táxi e da Gasolina por Cidade")
 stats = avg_prices_by_city.describe()
 st.write(stats)
-
-# Rodapé
-st.write("Desenvolvido com ❤️ para análise de viagens!")
