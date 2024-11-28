@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 
 # Carregar os dados
@@ -11,7 +10,6 @@ data = pd.read_csv("data.csv")
 data.rename(columns={
     'city': 'Cidade',
     'country': 'País',
-    'x3': 'McMeal (USD)',
     'x5': 'Cerveja Importada (USD)',
     'x54': 'Média Salário (USD)',
     'x28': 'Passagem Local (USD)',
@@ -20,104 +18,102 @@ data.rename(columns={
     'x33': 'Preço da Gasolina (USD)'
 }, inplace=True)
 
+# Mapeamento de países para continentes (adicionei países conhecidos, você pode expandir conforme necessário)
+continent_mapping = {
+    'África': ['South Africa', 'Nigeria', 'Egypt'],
+    'Américas': ['United States', 'Canada', 'Mexico', 'Brazil', 'Argentina', 'Chile'],
+    'Ásia': ['Japan', 'China', 'India', 'South Korea'],
+    'Europa': ['Germany', 'France', 'Italy', 'Spain', 'United Kingdom', 'Portugal', 'Netherlands', 'Poland', 'Russia'],
+    'Oceania': ['Australia', 'New Zealand']
+}
+
+# Função para mapear os países aos continentes
+def map_to_continent(country):
+    for continent, countries in continent_mapping.items():
+        if country in countries:
+            return continent
+    return 'Outro'  # Caso não encontre um continente para o país
+
+# Adicionar coluna de Continente ao dataset
+data['Continente'] = data['País'].apply(map_to_continent)
+
 # Título
 st.title("Análise e Precificação de Viagens")
 
-# Filtro Dinâmico por País
+# Filtros dependentes
 st.sidebar.header("Filtros")
-selected_country = st.sidebar.selectbox("Selecione um País", options=["Todos"] + data['País'].unique().tolist())
+selected_continent = st.sidebar.selectbox("Selecione um Continente", options=["Todos"] + sorted(data['Continente'].unique()))
 
-# Filtrar os dados por país
-filtered_data = data.copy()
+# Filtrar países com base no continente selecionado
+if selected_continent != "Todos":
+    countries_in_continent = sorted(data[data['Continente'] == selected_continent]['País'].unique())
+else:
+    countries_in_continent = sorted(data['País'].unique())  # Incluir todos os países
+selected_country = st.sidebar.selectbox("Selecione um País", options=["Todos"] + countries_in_continent)
+
+# Filtrar cidades com base no país selecionado
 if selected_country != "Todos":
-    filtered_data = filtered_data[filtered_data["País"] == selected_country]
-
-# Agora, ao selecionar o país, mostramos as cidades do país selecionado
-cities_in_country = filtered_data['Cidade'].unique().tolist()
-
-# Filtro por cidade dentro do país
+    cities_in_country = sorted(data[data['País'] == selected_country]['Cidade'].unique())
+else:
+    if selected_continent != "Todos":
+        cities_in_country = sorted(data[data['Continente'] == selected_continent]['Cidade'].unique())
+    else:
+        cities_in_country = sorted(data['Cidade'].unique())  # Incluir todas as cidades
 selected_city = st.sidebar.selectbox("Selecione uma Cidade", options=["Todas"] + cities_in_country)
 
-# Filtrar os dados por cidade, se necessário
+# Aplicar filtros no dataset
 if selected_city != "Todas":
-    filtered_data = filtered_data[filtered_data["Cidade"] == selected_city]
+    filtered_data = data[data['Cidade'] == selected_city]
+elif selected_country != "Todos":
+    filtered_data = data[data['País'] == selected_country]
+elif selected_continent != "Todos":
+    filtered_data = data[data['Continente'] == selected_continent]
+else:
+    filtered_data = data
 
-# Agrupar os dados por cidade (dentro do país selecionado) e calcular as médias
-avg_prices_by_city = filtered_data.groupby("Cidade")[["Preço do Km do Táxi (USD)", "Preço da Gasolina (USD)"]].mean().reset_index()
+# Ajustar exibição dos gráficos com base nos filtros aplicados
+if selected_city != "Todas":
+    title = f"Análise para a Cidade {selected_city}"
+    grouping_col = "Cidade"
+elif selected_country != "Todos":
+    title = f"Análise para o País {selected_country}"
+    grouping_col = "Cidade"
+elif selected_continent != "Todos":
+    title = f"Análise para o Continente {selected_continent}"
+    grouping_col = "País"
+else:
+    title = "Análise por Continente"
+    grouping_col = "Continente"
 
-# Criar subplots para exibir gráficos lado a lado
-fig = make_subplots(
-    rows=1, cols=2,
-    subplot_titles=("Preço do Km do Táxi por Cidade", "Preço da Gasolina por Cidade"),
-    horizontal_spacing=0.2  # Espaçamento horizontal
-)
+# Agrupar os dados para o gráfico
+grouped_data = filtered_data.groupby(grouping_col)[["Preço do Km do Táxi (USD)", "Preço da Gasolina (USD)"]].mean().reset_index()
 
-# Gráfico do Preço do Km do Táxi por País
-st.write("### Preço do Km do Táxi por País")
-taxi_price_by_country = filtered_data.groupby("País")["Preço do Km do Táxi (USD)"].mean().reset_index()
-fig_taxi_price_country = px.bar(
-    taxi_price_by_country,
-    y="País",  # País no eixo Y
-    x="Preço do Km do Táxi (USD)",  # Preço no eixo X
-    color="País",
-    title="Preço Médio do Km do Táxi por País",
-    labels={"Preço do Km do Táxi (USD)": "Preço Médio (USD)", "País": "País"},
-    height=500
-)
-st.plotly_chart(fig_taxi_price_country)
+# Exibir gráficos separados
+st.write(f"### {title}")
 
-# Gráfico do Preço da Gasolina por País
-st.write("### Preço da Gasolina por País")
-gas_price_by_country = filtered_data.groupby("País")["Preço da Gasolina (USD)"].mean().reset_index()
-fig_gas_price_country = px.bar(
-    gas_price_by_country,
-    y="País",  # País no eixo Y
-    x="Preço da Gasolina (USD)",  # Preço no eixo X
-    color="País",
-    title="Preço Médio da Gasolina por País",
-    labels={"Preço da Gasolina (USD)": "Preço Médio (USD)", "País": "País"},
-    height=500
-)
-st.plotly_chart(fig_gas_price_country)
+# Função para gerar gráficos com escala de cor quente
+def plot_heatmap_chart(df, x_col, y_col, title, color_col, color_scale):
+    fig = px.bar(
+        df,
+        x=x_col,
+        y=y_col,
+        title=title,
+        labels={x_col: x_col, y_col: "Preço (USD)"},
+        height=400,
+        color=color_col,
+        color_continuous_scale=color_scale  # Aplicando a escala de cores personalizada
+    )
+    st.plotly_chart(fig)
 
-# Gráfico de dispersão para Preço do Km do Táxi
-fig.add_trace(
-    go.Scatter(
-        x=avg_prices_by_city["Preço do Km do Táxi (USD)"],  # Preço no eixo X
-        y=avg_prices_by_city["Cidade"],  # Cidade no eixo Y
-        mode="markers",
-        name="Km do Táxi",
-        marker=dict(color="blue", size=10)
-    ),
-    row=1, col=1
-)
+# Gráfico: Preço do Km do Táxi (com escala de cores "Blues")
+st.write("#### Preço do Km do Táxi")
+plot_heatmap_chart(grouped_data, grouping_col, "Preço do Km do Táxi (USD)", "Preço Médio do Km do Táxi", "Preço do Km do Táxi (USD)", "Blues")
 
-# Gráfico de dispersão para Preço da Gasolina
-fig.add_trace(
-    go.Scatter(
-        x=avg_prices_by_city["Preço da Gasolina (USD)"],  # Preço no eixo X
-        y=avg_prices_by_city["Cidade"],  # Cidade no eixo Y
-        mode="markers",
-        name="Gasolina",
-        marker=dict(color="orange", size=10)
-    ),
-    row=1, col=2
-)
+# Gráfico: Preço da Gasolina (com escala de cores "Reds")
+st.write("#### Preço da Gasolina")
+plot_heatmap_chart(grouped_data, grouping_col, "Preço da Gasolina (USD)", "Preço Médio da Gasolina", "Preço da Gasolina (USD)", "Reds")
 
-# Configurar layout dos gráficos
-fig.update_layout(
-    title_text=f"Comparação de Preços: Km do Táxi e Gasolina por Cidade em {selected_country}",
-    height=500,
-    width=1000,
-    title_x=0,
-    showlegend=False,
-    xaxis_title="Preço Médio (USD)",
-    yaxis_title="Cidade"
-)
-
-st.plotly_chart(fig)
-
-# Estatísticas descritivas
-st.write("### Estatísticas Descritivas: Preço do Km do Táxi e da Gasolina por Cidade")
-stats = avg_prices_by_city.describe()
+# Estatísticas descritivas dos dados filtrados
+st.write("### Estatísticas Descritivas dos Dados Filtrados")
+stats = filtered_data.describe()
 st.write(stats)
