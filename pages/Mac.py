@@ -3,10 +3,6 @@ import pandas as pd
 import plotly.express as px
 from plotly.subplots import make_subplots
 
-st.set_page_config(
-    page_title="Home",
-)
-
 # Carregar os dados
 data = pd.read_csv("data.csv")
 
