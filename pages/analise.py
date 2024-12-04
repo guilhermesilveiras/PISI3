@@ -1,25 +1,17 @@
 import streamlit as st
-import pandas as pd 
-import geopandas as gpd
-import geopandas
+import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
 import numpy as np
-import missingno as msno
-from scipy import stats
-import warnings
-warnings.filterwarnings("ignore")
-
 
 # Carregar os dados
 data = pd.read_csv("data.csv")
 
-# filtrar por qualidade de dados
+# Filtrar por qualidade de dados
 data_good = data[data["data_quality"] == 1]
 data_bad  = data[data["data_quality"] == 0]
 
-data_bad.drop("data_quality", inplace = True, axis = 1) 
-data_good.drop("data_quality", inplace = True, axis = 1)
+data_bad.drop("data_quality", inplace=True, axis=1)
+data_good.drop("data_quality", inplace=True, axis=1)
 
 st.header("Qualidade e análise de dados")
 st.write("""
@@ -49,7 +41,9 @@ ax.set_title('Número de Cidades em cada País (Top 15)', color='white')
 ax.tick_params(axis='x', colors='white')
 ax.tick_params(axis='y', colors='white')
 
-# Configurar a cor da borda do gráfico
+# Eliminar a borda do gráfico
 for spine in ax.spines.values():
     spine.set_edgecolor('none')
 
+# Exibir o gráfico no Streamlit
+st.pyplot(fig)
