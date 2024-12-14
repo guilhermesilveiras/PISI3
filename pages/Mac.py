@@ -184,3 +184,11 @@ if "McMeal (USD)" in data.columns and "Média Salário (USD)" in data.columns:
 
 else:
     st.write("As colunas 'McMeal (USD)' ou 'Média Salário (USD)' não foram encontradas nos dados.")
+
+agrupado_pais['Porcentagem McMeal do Salário'] = (agrupado_pais['McMeal (USD)'] / agrupado_pais['Média Salário (USD)']) * 100
+
+# Exibir as primeiras linhas da tabela com a porcentagem
+st.write("### Porcentagem do Salário Representada pelo McMeal por País")
+st.write(agrupado_pais[['País', 'McMeal (USD)', 'Média Salário (USD)', 'Porcentagem McMeal do Salário']]) 
+
+st.write("O McMeal é uma referência global comum em um mundo com tantas disparidades econômicas, o que torna essa estatística essencial no desenvolvimento do aplicativo. Ao comparar o custo do McMeal com o salário médio, conseguimos oferecer uma visão única e relevante sobre a acessibilidade de alimentos em diferentes países, ajudando os usuários a planejar suas viagens de forma mais informada e adaptada à realidade local. Essa métrica possibilita decisões financeiras mais conscientes, considerando a diversidade de custos ao redor do mundo.")
