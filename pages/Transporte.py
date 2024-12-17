@@ -117,3 +117,7 @@ plot_heatmap_chart(grouped_data, grouping_col, "Preço da Gasolina (USD)", "Pre�
 st.write("### Estatísticas Descritivas dos Dados Filtrados")
 stats = filtered_data.describe()
 st.write(stats)
+
+st.write("A relação entre o preço da gasolina e o preço do táxi pode fornecer insights sobre a economia local. Se o preço do táxi for significativamente mais alto do que o custo da gasolina, pode indicar que a infraestrutura de transporte é deficiente ou que o mercado de táxi é monopolizado. Essa informação pode ser útil para ajustar preços de serviços dentro do aplicativo, oferecendo melhores opções de acordo com a região. Além disso, o preço do combustível e do táxi pode estar correlacionado com o poder de compra local e o custo de vida, o que pode ajudar a planejar novas opções de transporte ou parcerias estratégicas.")
+st.write("Uma análise perceptível que, por exemplo, na Europa, a gasolina é mais cara do que o táxi, o que pode ser um reflexo de políticas fiscais que buscam desincentivar o consumo de combustível e promover o uso de transporte público ou alternativas mais sustentáveis.")
+st.write("Também obversava-se na Oceania, onde o preço do táxi é mais caro que o da gasolina, isso pode ser atribuído a fatores como a baixa densidade populacional e a falta de alternativas de transporte público eficientes. O custo elevado do táxi pode ser uma consequência da maior dependência de transporte particular em algumas áreas. ")

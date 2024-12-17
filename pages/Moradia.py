@@ -51,3 +51,7 @@ st.plotly_chart(fig_rent_country)
 st.write("### Estatísticas Descritivas: Custo de Aluguel de 1 Quarto no Centro por País")
 stats_rent = avg_rent_by_country.describe()
 st.write(stats_rent)
+
+st.write("O gráfica de média de aluguel oferece uma visão ampla sobre as variações nos preços em diferentes regiões. Esse tipo de análise é crucial para compreender as diferenças no custo de vida entre diversos destinos. Ao observar o gráfico, é possível notar que países com grandes centros urbanos e economias mais desenvolvidas, como Estados Unidos, Reino Unido ou Japão, apresentam aluguéis significativamente mais caros. Em contrapartida, países com menor custo de vida ou menos urbanos tendem a oferecer preços de aluguel mais acessíveis.")
+st.write("Os países que se destacam pelos maiores preços, como Mônaco, Bermudas, Papua-Nova Guiné e Singapura possuem os maiores valores de aluguel devido à combinação de fatores como escassez de território, alta demanda por moradias e economias desenvolvidas. Em Mônaco e Singapura, a falta de espaço e a alta densidade populacional elevam os preços. Bermudas, com seu foco turístico e financeiro, atrai profissionais e visitantes de alto padrão, enquanto em Papua-Nova Guiné, a oferta restrita de imóveis adequados para expatriados e empresas multinacionais gera valores elevados. Esses fatores refletem a exclusividade e a competitividade do mercado imobiliário nessas regiões.")
+
