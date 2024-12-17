@@ -4,7 +4,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 # Carregar os dados
-data = pd.read_csv("data.csv")
+data = pd.read_csv("data_cleaned.csv")
 
 # Renomear colunas para facilitar o entendimento
 data.rename(columns={

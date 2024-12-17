@@ -33,37 +33,54 @@ for col in data_filled.select_dtypes(include=[object]).columns:
 st.write("**Dataset Após Limpeza**")
 st.write(data_filled.head())
 
-# Exibir a comparação entre dados antes e depois da limpeza
+# Comparação de dados faltantes
 st.write("**Comparação de Dados Faltantes Antes e Depois da Limpeza**")
 st.write(f"**Quantidade de Valores Faltantes no Dataset Original**: {data.isnull().sum().sum()}")
 st.write(f"**Quantidade de Valores Faltantes Após Limpeza**: {data_filled.isnull().sum().sum()}")
 
-
-
+# Salvar o dataset limpo
 data_filled.to_csv("data_cleaned.csv", index=False)
 
-# Visualizar os gráficos de valores faltantes antes e depois da limpeza
+# Função para adicionar números nas colunas
+def add_column_numbers(ax, df):
+    total_columns = df.shape[1]  # Número total de colunas
+    for i in range(total_columns):
+        ax.text(
+            x=i, 
+            y=-0.3,  # Posição ajustada abaixo das colunas
+            s=str(i + 1),  # Número da coluna (1-indexed)
+            fontsize=12,  # Tamanho maior para melhor visualização
+            color="black", 
+            ha="center", 
+            va="center",
+            weight="bold"
+        )
+
+# Visualização dos dados faltantes no Dataset Original
 st.write("**Visualização dos Dados Faltantes no Dataset Original**")
-fig1, ax1 = plt.subplots(figsize=(12, 6))
-msno.matrix(data, ax=ax1)
+fig1, ax1 = plt.subplots(figsize=(14, 8))  # Tamanho maior
+msno.matrix(data, ax=ax1, color=(0.2, 0.4, 0.6))  # Azul elegante
+add_column_numbers(ax1, data)  # Adicionar números
 st.pyplot(fig1)
 
+# Visualização dos dados faltantes no Dataset Limpo
 st.write("**Visualização dos Dados Faltantes Após a Limpeza**")
-fig2, ax2 = plt.subplots(figsize=(12, 6))
-msno.matrix(data_filled, ax=ax2)
+fig2, ax2 = plt.subplots(figsize=(14, 8))  # Tamanho maior
+msno.matrix(data_filled, ax=ax2, color=(0.2, 0.4, 0.6))  # Mesmo tom de azul
+add_column_numbers(ax2, data_filled)  # Adicionar números
 st.pyplot(fig2)
 
-st.write("Estratégia de Preenchimento de Dados Ausentes: Preenchemos os valores faltantes nesse processo de Data Cleansing utilizando uma abordagem simples, mas eficaz. Para as colunas numéricas, os valores ausentes foram substituídos pela média dos valores da coluna correspondente, garantindo que o impacto nos cálculos estatísticos futuros seja minimizado e que a distribuição dos dados permaneça consistente. Já para as colunas categóricas, utilizamos a moda (valor mais frequente), permitindo que categorias mais representativas preencham as lacunas de maneira lógica, preservando a coerência das informações categóricas. Estratégia para uma soluçãao mais simples e genérica, mantendo a coerência")
+# Relatório final
+st.write("**Estratégia de Preenchimento de Dados Ausentes:**")
+st.write(
+    "Para colunas numéricas, utilizamos a média dos valores para preencher os dados faltantes. "
+    "Já para as colunas categóricas, utilizamos a moda, mantendo coerência estatística e representatividade."
+)
 
-
-# Relatório de comparação
 st.write("**Relatório de Comparação - Limpeza de Dados**")
-
-
-
-# Exibir a diferença no total de dados faltantes
 st.write(f"**Diferença no Total de Valores Faltantes**: {data.isnull().sum().sum() - data_filled.isnull().sum().sum()}")
 
+# Estatísticas descritivas
 st.write("**Estatísticas Descritivas do Dataset Original**")
 st.write(data.describe())
 

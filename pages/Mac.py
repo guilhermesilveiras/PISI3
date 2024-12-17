@@ -4,7 +4,7 @@ import plotly.express as px
 from plotly.subplots import make_subplots
 
 # Carregar os dados
-data = pd.read_csv("data.csv")
+data = pd.read_csv("data_cleaned.csv")
 
 # Renomear colunas para facilitar o entendimento
 data.rename(columns={
@@ -41,93 +41,63 @@ if "McMeal (USD)" in data.columns and "Média Salário (USD)" in data.columns:
     # Filtrar países com dados disponíveis para ambas as colunas
     data_filtrada = data.dropna(subset=["McMeal (USD)", "Média Salário (USD)"])
 
-    # **Análise por País**
+    # **Gráficos para Média entre Maiores/Menores**
     agrupado_pais = data_filtrada.groupby("País")[["McMeal (USD)", "Média Salário (USD)"]].mean().reset_index()
     agrupado_pais = agrupado_pais.sort_values(by="Média Salário (USD)", ascending=True)
+    
+    # Calcular a média dos 10 maiores e 10 menores
+    maiores = agrupado_pais.head(50)
+    menores = agrupado_pais.tail(50)
+    
+    media_maiores_salario = maiores["Média Salário (USD)"].mean()
+    media_menores_salario = menores["Média Salário (USD)"].mean()
+    media_maiores_mcmeal = maiores["McMeal (USD)"].mean()
+    media_menores_mcmeal = menores["McMeal (USD)"].mean()
 
-    fig_pais = make_subplots(
-        rows=1, cols=2,
-        subplot_titles=("Média de Salário", "Preço Médio do McDonald's (McMeal)"),
-        column_widths=[0.45, 0.45],
-        horizontal_spacing=0.3
-    )
-
-    # Gráfico de salário à esquerda
-    fig_pais.add_trace(
-        px.bar(
-            agrupado_pais,
-            x="Média Salário (USD)",
-            y="País",
-            orientation='h',
-            color="Média Salário (USD)",
-            color_continuous_scale="Blues",
-            labels={"País": "País", "Média Salário (USD)": "Média Salário (USD)"}
-        ).data[0], row=1, col=1
-    )
-
-    # Gráfico de McMeal à direita
-    fig_pais.add_trace(
-        px.bar(
-            agrupado_pais,
-            x="McMeal (USD)",
-            y="País",
-            orientation='h',
-            color="McMeal (USD)",
-            color_continuous_scale="Viridis",
-            labels={"País": "País", "McMeal (USD)": "Preço Médio (USD)"}
-        ).data[0], row=1, col=2
-    )
-
-    fig_pais.update_layout(
-        title_text="Análise Geral por País",
-        showlegend=False,
-        height=700,
-        width=1400,
-        title_x=0
-    )
-    st.plotly_chart(fig_pais)
-
-    # **Gráficos para Extremos**
-    extremos_pais = pd.concat([agrupado_pais.head(25), agrupado_pais.tail(25)])
+    # Criar um novo dataframe para exibir as médias
+    medias = pd.DataFrame({
+        'Categoria': ['50 Maiores', '50 Menores'],
+        'Média Salário (USD)': [media_maiores_salario, media_menores_salario],
+        'McMeal (USD)': [media_maiores_mcmeal, media_menores_mcmeal]
+    })
 
     fig_extremos = make_subplots(
-        rows=1, cols=2,
+        rows=2, cols=1,  # Alterado para 2 linhas e 1 coluna
         subplot_titles=("Média de Salário", "Preço Médio do McDonald's (McMeal)"),
-        column_widths=[0.45, 0.45],
-        horizontal_spacing=0.3
+        vertical_spacing=0.3
     )
 
-    # Gráfico de salário à esquerda
+    # Gráfico de salário com cor representando a média
     fig_extremos.add_trace(
         px.bar(
-            extremos_pais,
-            x="Média Salário (USD)",
-            y="País",
-            orientation='h',
-            color="Média Salário (USD)",
-            color_continuous_scale="Turbo",
-            labels={"País": "País", "Média Salário (USD)": "Média Salarial (USD)"}
+            medias,
+            y="Média Salário (USD)",
+            x="Categoria",
+            orientation='v',  # Alterado para vertical
+            labels={"Categoria": "Categoria", "Média Salário (USD)": "Média Salarial (USD)"},
+            color="Média Salário (USD)",  # Adicionando cor baseada no valor do salário
+            color_continuous_scale="YlOrRd"  # Escala de cores: de tons frios (amarelo) para quentes (vermelho)
         ).data[0], row=1, col=1
     )
 
-    # Gráfico de McMeal à direita
+    # Gráfico de McMeal com cor representando a média
     fig_extremos.add_trace(
         px.bar(
-            extremos_pais,
-            x="McMeal (USD)",
-            y="País",
-            orientation='h',
-            color="McMeal (USD)",
-            color_continuous_scale="Viridis",
-            labels={"País": "País", "McMeal (USD)": "Preço Médio McMeal (USD)"}
-        ).data[0], row=1, col=2
+            medias,
+            y="McMeal (USD)",
+            x="Categoria",
+            orientation='v',  # Alterado para vertical
+            labels={"Categoria": "Categoria", "McMeal (USD)": "Preço Médio McMeal (USD)"},
+            color="McMeal (USD)",  # Adicionando cor baseada no valor do preço do McMeal
+            color_continuous_scale="YlOrRd"  # Escala de cores: de tons frios (amarelo) para quentes (vermelho)
+        ).data[0], row=2, col=1
     )
 
     fig_extremos.update_layout(
-        title_text="Análise dos 25 maiores/menores médias de salário por País (USD)",
+        title_text="Média entre os 50 maiores e 50 menores salários e preços do McMeal (USD)",
         showlegend=False,
-        height=700,
-        width=1400,
+        height=1000,  # Ajustado para acomodar 2 gráficos
+        width=900,
         title_x=0
     )
     st.plotly_chart(fig_extremos)
@@ -137,43 +107,42 @@ if "McMeal (USD)" in data.columns and "Média Salário (USD)" in data.columns:
     agrupado_continente = agrupado_continente.sort_values(by="Média Salário (USD)", ascending=True)
 
     fig_continente = make_subplots(
-        rows=1, cols=2,
+        rows=2, cols=1,  # Alterado para 2 linhas e 1 coluna
         subplot_titles=("Média de Salário", "Preço Médio do McDonald's (McMeal)"),
-        column_widths=[0.45, 0.45],
-        horizontal_spacing=0.3
+        vertical_spacing=0.3
     )
 
-    # Gráfico de salário à esquerda
+    # Gráfico de salário com cores variando conforme o valor
     fig_continente.add_trace(
         px.bar(
             agrupado_continente,
-            x="Média Salário (USD)",
-            y="Continente",
-            orientation='h',
-            color="Média Salário (USD)",
-            color_continuous_scale="Blues",
-            labels={"Continente": "Continente", "Média Salário (USD)": "Média Salarial (USD)"}
+            y="Média Salário (USD)",
+            x="Continente",
+            orientation='v',  # Alterado para vertical
+            labels={"Continente": "Continente", "Média Salário (USD)": "Média Salarial (USD)"},
+            color="Média Salário (USD)",  # Adicionando cor baseada no valor do salário
+            color_continuous_scale="YlOrRd"  # Escala de cores: de tons frios (amarelo) para quentes (vermelho)
         ).data[0], row=1, col=1
     )
 
-    # Gráfico de McMeal à direita
+    # Gráfico de McMeal com cores variando conforme o valor
     fig_continente.add_trace(
         px.bar(
             agrupado_continente,
-            x="McMeal (USD)",
-            y="Continente",
-            orientation='h',
-            color="McMeal (USD)",
-            color_continuous_scale="Viridis",
-            labels={"Continente": "Continente", "McMeal (USD)": "Preço Médio McMeal (USD)"}
-        ).data[0], row=1, col=2
+            y="McMeal (USD)",
+            x="Continente",
+            orientation='v',  # Alterado para vertical
+            labels={"Continente": "Continente", "McMeal (USD)": "Preço Médio McMeal (USD)"},
+            color="McMeal (USD)",  # Adicionando cor baseada no valor do preço do McMeal
+            color_continuous_scale="YlOrRd"  # Escala de cores: de tons frios (amarelo) para quentes (vermelho)
+        ).data[0], row=2, col=1
     )
 
     fig_continente.update_layout(
-        title_text="Comparação de Salário Médio e Preço do McMeal por Continente (USD)",
+        title_text="Comparação de Salário Médio e Preço do McMeal por Continente (USD)", 
         showlegend=False,
-        height=600,
-        width=1000,
+        height=1000,  # Ajustado para acomodar 2 gráficos
+        width=900,
         title_x=0
     )
     st.plotly_chart(fig_continente)
@@ -189,6 +158,6 @@ agrupado_pais['Porcentagem McMeal do Salário'] = (agrupado_pais['McMeal (USD)']
 
 # Exibir as primeiras linhas da tabela com a porcentagem
 st.write("### Porcentagem do Salário Representada pelo McMeal por País")
-st.write(agrupado_pais[['País', 'McMeal (USD)', 'Média Salário (USD)', 'Porcentagem McMeal do Salário']]) 
+st.write(agrupado_pais[['País', 'McMeal (USD)', 'Média Salário (USD)', 'Porcentagem McMeal do Salário']])
 
 st.write("O McMeal é uma referência global comum em um mundo com tantas disparidades econômicas, o que torna essa estatística essencial no desenvolvimento do aplicativo. Ao comparar o custo do McMeal com o salário médio, conseguimos oferecer uma visão única e relevante sobre a acessibilidade de alimentos em diferentes países, ajudando os usuários a planejar suas viagens de forma mais informada e adaptada à realidade local. Essa métrica possibilita decisões financeiras mais conscientes, considerando a diversidade de custos ao redor do mundo.")
