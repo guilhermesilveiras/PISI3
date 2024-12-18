@@ -1,7 +1,27 @@
 import pandas as pd
 import plotly.express as px
 import streamlit as st
+import streamlit as st
 
+# Carregar o dataset
+data = pd.read_csv("data_cleaned.csv")
+
+# Lista de países e seus respectivos continentes
+continentes = {
+    'Africa': ['Algeria', 'Angola', 'Botswana', 'Egypt', 'South Africa', 'Morocco', 'Nigeria', 'Kenya', 'Tunisia', 'Ethiopia'],
+    'Asia': ['China', 'Japan', 'India', 'South Korea', 'Singapore', 'Saudi Arabia', 'Turkey', 'Indonesia', 'Israel', 'Vietnam'],
+    'Europe': ['Germany', 'United Kingdom', 'France', 'Italy', 'Spain', 'Russia', 'Netherlands', 'Switzerland', 'Sweden', 'Poland'],
+    'North America': ['United States', 'Canada', 'Mexico', 'Cuba', 'Dominican Republic'],
+    'South America': ['Brazil', 'Argentina', 'Chile', 'Colombia', 'Peru', 'Venezuela'],
+    'Oceania': ['Australia', 'New Zealand', 'Papua New Guinea', 'Fiji']
+}
+
+# Função para determinar o continente com base no país
+def determinar_continente(pais):
+    for continente, paises in continentes.items():
+        if pais in paises:
+            return continente
+    return "Desconhecido"
 # Carregar o dataset
 data = pd.read_csv("data_cleaned.csv")
 
@@ -27,14 +47,21 @@ data.rename(columns={
     'city': 'Cidade',
     'country': 'País',
     'x48': 'Aluguel 1 Quarto no Centro (USD)'  # Aluguel de um quarto no centro
+    'x48': 'Aluguel 1 Quarto no Centro (USD)'  # Aluguel de um quarto no centro
 }, inplace=True)
 
+# Adicionar coluna de continente
+data['Continente'] = data['País'].apply(determinar_continente)
 # Adicionar coluna de continente
 data['Continente'] = data['País'].apply(determinar_continente)
 
 # Remover dados com Continente desconhecido
 data = data[data['Continente'] != "Desconhecido"]
+# Remover dados com Continente desconhecido
+data = data[data['Continente'] != "Desconhecido"]
 
+# Calcular a média do aluguel por continente
+media_aluguel_continente = data.groupby('Continente')['Aluguel 1 Quarto no Centro (USD)'].mean().reset_index()
 # Calcular a média do aluguel por continente
 media_aluguel_continente = data.groupby('Continente')['Aluguel 1 Quarto no Centro (USD)'].mean().reset_index()
 
