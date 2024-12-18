@@ -4,7 +4,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 # Carregar os dados
-data = pd.read_csv("data.csv")
+data = pd.read_csv("data_cleaned.csv")
 
 # Renomear colunas para facilitar o entendimento
 data.rename(columns={
@@ -105,15 +105,19 @@ def plot_heatmap_chart(df, x_col, y_col, title, color_col, color_scale):
     )
     st.plotly_chart(fig)
 
-# Gráfico: Preço do Km do Táxi (com escala de cores "Blues")
+# Gráfico: Preço do Km do Táxi (com escala de cores "Viridis" para maior contraste)
 st.write("#### Preço do Km do Táxi")
-plot_heatmap_chart(grouped_data, grouping_col, "Preço do Km do Táxi (USD)", "Preço Médio do Km do Táxi", "Preço do Km do Táxi (USD)", "Blues")
+plot_heatmap_chart(grouped_data, grouping_col, "Preço do Km do Táxi (USD)", "Preço Médio do Km do Táxi", "Preço do Km do Táxi (USD)", "Viridis")
 
-# Gráfico: Preço da Gasolina (com escala de cores "Reds")
+# Gráfico: Preço da Gasolina (com escala de cores "Plasma" para maior contraste)
 st.write("#### Preço da Gasolina")
-plot_heatmap_chart(grouped_data, grouping_col, "Preço da Gasolina (USD)", "Preço Médio da Gasolina", "Preço da Gasolina (USD)", "Reds")
+plot_heatmap_chart(grouped_data, grouping_col, "Preço da Gasolina (USD)", "Preço Médio da Gasolina", "Preço da Gasolina (USD)", "Plasma")
 
 # Estatísticas descritivas dos dados filtrados
 st.write("### Estatísticas Descritivas dos Dados Filtrados")
 stats = filtered_data.describe()
 st.write(stats)
+
+st.write("A relação entre o preço da gasolina e o preço do táxi pode fornecer insights sobre a economia local. Se o preço do táxi for significativamente mais alto do que o custo da gasolina, pode indicar que a infraestrutura de transporte é deficiente ou que o mercado de táxi é monopolizado. Essa informação pode ser útil para ajustar preços de serviços dentro do aplicativo, oferecendo melhores opções de acordo com a região. Além disso, o preço do combustível e do táxi pode estar correlacionado com o poder de compra local e o custo de vida, o que pode ajudar a planejar novas opções de transporte ou parcerias estratégicas.")
+st.write("Uma análise perceptível que, por exemplo, na Europa, a gasolina é mais cara do que o táxi, o que pode ser um reflexo de políticas fiscais que buscam desincentivar o consumo de combustível e promover o uso de transporte público ou alternativas mais sustentáveis.")
+st.write("Também obversava-se na Oceania, onde o preço do táxi é mais caro que o da gasolina, isso pode ser atribuído a fatores como a baixa densidade populacional e a falta de alternativas de transporte público eficientes. O custo elevado do táxi pode ser uma consequência da maior dependência de transporte particular em algumas áreas. ")

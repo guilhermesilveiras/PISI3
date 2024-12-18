@@ -1,53 +1,70 @@
-import streamlit as st
 import pandas as pd
 import plotly.express as px
+import streamlit as st
 
-# Carregar os dados
-data = pd.read_csv("data.csv")
+# Carregar o dataset
+data = pd.read_csv("data_cleaned.csv")
+
+# Lista de países e seus respectivos continentes
+continentes = {
+    'Africa': ['Algeria', 'Angola', 'Botswana', 'Egypt', 'South Africa', 'Morocco', 'Nigeria', 'Kenya', 'Tunisia', 'Ethiopia'],
+    'Asia': ['China', 'Japan', 'India', 'South Korea', 'Singapore', 'Saudi Arabia', 'Turkey', 'Indonesia', 'Israel', 'Vietnam'],
+    'Europe': ['Germany', 'United Kingdom', 'France', 'Italy', 'Spain', 'Russia', 'Netherlands', 'Switzerland', 'Sweden', 'Poland'],
+    'North America': ['United States', 'Canada', 'Mexico', 'Cuba', 'Dominican Republic'],
+    'South America': ['Brazil', 'Argentina', 'Chile', 'Colombia', 'Peru', 'Venezuela'],
+    'Oceania': ['Australia', 'New Zealand', 'Papua New Guinea', 'Fiji']
+}
+
+# Função para determinar o continente com base no país
+def determinar_continente(pais):
+    for continente, paises in continentes.items():
+        if pais in paises:
+            return continente
+    return "Desconhecido"
 
 # Renomear colunas para facilitar o entendimento
 data.rename(columns={
     'city': 'Cidade',
     'country': 'País',
-    'x3': 'McMeal (USD)',
-    'x5': 'Cerveja Importada (USD)',
-    'x54': 'Média Salário (USD)',
-    'x28': 'Passagem Local (USD)',
-    'x48': 'Aluguel 1 Quarto no Centro (USD)',  # Aluguel de um quarto no centro da cidade
-    'x31': 'Preço do Km do Táxi (USD)',
-    'x33': 'Preço da Gasolina (USD)'
+    'x48': 'Aluguel 1 Quarto no Centro (USD)'  # Aluguel de um quarto no centro
 }, inplace=True)
 
-# Título
-st.title("Análise de Custo de Vida: Aluguel de Apartamento por País")
+# Adicionar coluna de continente
+data['Continente'] = data['País'].apply(determinar_continente)
 
-# Filtro Dinâmico por País
-st.sidebar.header("Filtros")
-selected_country = st.sidebar.selectbox("Selecione um País", options=["Todos"] + data['País'].unique().tolist())
+# Remover dados com Continente desconhecido
+data = data[data['Continente'] != "Desconhecido"]
 
-# Filtrar os dados por país
-filtered_data = data.copy()
-if selected_country != "Todos":
-    filtered_data = filtered_data[filtered_data["País"] == selected_country]
+# Calcular a média do aluguel por continente
+media_aluguel_continente = data.groupby('Continente')['Aluguel 1 Quarto no Centro (USD)'].mean().reset_index()
 
-# Agrupar os dados por país e calcular as médias do aluguel de um quarto no centro
-avg_rent_by_country = filtered_data.groupby("País")["Aluguel 1 Quarto no Centro (USD)"].mean().reset_index()
-
-# Criar gráfico de barras para exibir o custo do aluguel de um quarto no centro por país
-fig_rent_country = px.bar(
-    avg_rent_by_country,
-    x="País",
+# Criar gráfico de barras com a coloração baseada na tonalidade azul (Viridis)
+fig = px.bar(
+    media_aluguel_continente,
+    x="Continente",
     y="Aluguel 1 Quarto no Centro (USD)",
-    color="País",
-    title="Custo de Aluguel de 1 Quarto no Centro da Cidade por País",
-    labels={"Aluguel 1 Quarto no Centro (USD)": "Custo do Aluguel (USD)", "País": "País"},
+    color="Aluguel 1 Quarto no Centro (USD)",
+    title="Custo Médio de Aluguel de 1 Quarto no Centro por Continente",
+    labels={"Aluguel 1 Quarto no Centro (USD)": "Custo do Aluguel (USD)", "Continente": "Continente"},
+    color_continuous_scale='Viridis',  # Usando a paleta 'Viridis' para o gráfico de calor
     height=500
 )
 
-# Exibir o gráfico
-st.plotly_chart(fig_rent_country)
+# Ajustar layout do gráfico
+fig.update_layout(
+    xaxis=dict(title="Continente"),
+    yaxis=dict(title="Custo Médio do Aluguel (USD)"),
+    plot_bgcolor='rgba(255,255,255,1)',  # Fundo branco para o modo claro
+    paper_bgcolor='rgba(255,255,255,1)',  # Fundo branco para o modo claro
+    font=dict(color='black')  # Cor do texto preta para contraste com fundo branco
+)
 
-# Estatísticas descritivas para o custo do aluguel
-st.write("### Estatísticas Descritivas: Custo de Aluguel de 1 Quarto no Centro por País")
-stats_rent = avg_rent_by_country.describe()
-st.write(stats_rent)
+# Exibir o gráfico no Streamlit
+st.title("Análise de Custo de Vida por Continente")
+st.plotly_chart(fig)
+
+st.write("O gráfico apresenta o Custo Médio de Aluguel de 1 Quarto no Centro por continente, evidenciando as disparidades regionais nos preços. Observa-se que a América do Norte possui o custo mais elevado, ultrapassando 1.100 USD, seguida pela Oceania com valores próximos a 1.000 USD. A Europa também apresenta valores consideráveis, situando-se em torno de 700 USD. Em contrapartida, continentes como África, Ásia e América do Sul exibem custos significativamente menores, todos abaixo dos 500 USD, indicando um padrão de preços mais acessível nessas regiões. O gráfico utiliza uma paleta de cores gradiente, indo do roxo ao amarelo, para representar a variação nos valores, facilitando a comparação visual entre as regiões.")
+
+# Exibir estatísticas descritivas para o custo de aluguel por continente
+st.write("### Estatísticas Descritivas por Continente")
+st.write(media_aluguel_continente.describe())
