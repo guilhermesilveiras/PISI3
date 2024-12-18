@@ -5,7 +5,6 @@ from plotly.subplots import make_subplots
 
 # Carregar os dados
 data = pd.read_csv("data_cleaned.csv")
-data = pd.read_csv("data_cleaned.csv")
 
 # Renomear colunas para facilitar o entendimento
 data.rename(columns={
@@ -43,25 +42,8 @@ if "McMeal (USD)" in data.columns and "Média Salário (USD)" in data.columns:
     data_filtrada = data.dropna(subset=["McMeal (USD)", "Média Salário (USD)"])
 
     # **Gráficos para Média entre Maiores/Menores**
-    # **Gráficos para Média entre Maiores/Menores**
     agrupado_pais = data_filtrada.groupby("País")[["McMeal (USD)", "Média Salário (USD)"]].mean().reset_index()
     agrupado_pais = agrupado_pais.sort_values(by="Média Salário (USD)", ascending=True)
-    
-    # Calcular a média dos 10 maiores e 10 menores
-    maiores = agrupado_pais.head(50)
-    menores = agrupado_pais.tail(50)
-    
-    media_maiores_salario = maiores["Média Salário (USD)"].mean()
-    media_menores_salario = menores["Média Salário (USD)"].mean()
-    media_maiores_mcmeal = maiores["McMeal (USD)"].mean()
-    media_menores_mcmeal = menores["McMeal (USD)"].mean()
-
-    # Criar um novo dataframe para exibir as médias
-    medias = pd.DataFrame({
-        'Categoria': ['50 Maiores', '50 Menores'],
-        'Média Salário (USD)': [media_maiores_salario, media_menores_salario],
-        'McMeal (USD)': [media_maiores_mcmeal, media_menores_mcmeal]
-    })
     
     # Calcular a média dos 10 maiores e 10 menores
     maiores = agrupado_pais.head(50)
@@ -81,9 +63,7 @@ if "McMeal (USD)" in data.columns and "Média Salário (USD)" in data.columns:
 
     fig_extremos = make_subplots(
         rows=2, cols=1,  # Alterado para 2 linhas e 1 coluna
-        rows=2, cols=1,  # Alterado para 2 linhas e 1 coluna
         subplot_titles=("Média de Salário", "Preço Médio do McDonald's (McMeal)"),
-        vertical_spacing=0.3
         vertical_spacing=0.3
     )
 
@@ -113,10 +93,7 @@ if "McMeal (USD)" in data.columns and "Média Salário (USD)" in data.columns:
 
     fig_extremos.update_layout(
         title_text="Média entre os 50 maiores e 50 menores salários e preços do McMeal (USD)",
-        title_text="Média entre os 50 maiores e 50 menores salários e preços do McMeal (USD)",
         showlegend=False,
-        height=1000,  # Ajustado para acomodar 2 gráficos
-        width=900,
         height=1000,  # Ajustado para acomodar 2 gráficos
         width=900,
         title_x=0
@@ -131,9 +108,7 @@ if "McMeal (USD)" in data.columns and "Média Salário (USD)" in data.columns:
 
     fig_continente = make_subplots(
         rows=2, cols=1,  # Alterado para 2 linhas e 1 coluna
-        rows=2, cols=1,  # Alterado para 2 linhas e 1 coluna
         subplot_titles=("Média de Salário", "Preço Médio do McDonald's (McMeal)"),
-        vertical_spacing=0.3
         vertical_spacing=0.3
     )
 
@@ -163,10 +138,7 @@ if "McMeal (USD)" in data.columns and "Média Salário (USD)" in data.columns:
 
     fig_continente.update_layout(
         title_text="Comparação de Salário Médio e Preço do McMeal por Continente (USD)", 
-        title_text="Comparação de Salário Médio e Preço do McMeal por Continente (USD)", 
         showlegend=False,
-        height=1000,  # Ajustado para acomodar 2 gráficos
-        width=900,
         height=1000,  # Ajustado para acomodar 2 gráficos
         width=900,
         title_x=0
