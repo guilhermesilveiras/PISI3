@@ -55,28 +55,29 @@ Antes de partir para uma análise mais detalhada dos dados, é importante verifi
 """)
 
 
-# Criar subgráficos lado a lado (ncols=2 para duas colunas)
-fig, (axB, ax) = plt.subplots(ncols=2, figsize=(12, 6))  # Ajuste de tamanho do gráfico
+# Criar subgráficos empilhados verticalmente (nrows=2 para duas linhas)
+fig, (axB, ax) = plt.subplots(nrows=2, figsize=(12, 10))  # Ajuste de tamanho do gráfico
 
 # Gráfico para o número de cidades em cada país com base nos dados ruins
-data_bad["country"].value_counts()[0:15].plot(kind='barh', color="lightcoral", ax=axB)
-axB.set_title("Number of cities in each country from the bad data")
-axB.tick_params(axis='x', colors='white')  # Cor dos rótulos do eixo X
-axB.tick_params(axis='y', colors='white')  # Cor dos rótulos do eixo Y
+data_bad["country"].value_counts()[0:15].plot(kind='bar', color="blue", ax=axB)  # Alterei para 'bar' (barras verticais)
+axB.set_title("Número de cidades por cada país com base nos dados ruins", color='black')  # Cor do título em preto
+axB.tick_params(axis='x', colors='black')  # Cor dos rótulos do eixo X em preto
+axB.tick_params(axis='y', colors='black')  # Cor dos rótulos do eixo Y em preto
 axB.set_facecolor('none')  # Cor de fundo do gráfico transparente
 fig.patch.set_alpha(0)  # Definir o fundo do gráfico como transparente
 
 # Gráfico para o número de cidades em cada país com base nos dados bons
-data_good["country"].value_counts()[0:15].plot(kind='barh', color="lightcoral", ax=ax)
-ax.set_title("Number of cities in each country from the good data")
-ax.tick_params(axis='x', colors='white')  # Cor dos rótulos do eixo X
-ax.tick_params(axis='y', colors='white')  # Cor dos rótulos do eixo Y
+data_good["country"].value_counts()[0:15].plot(kind='bar', color="blue", ax=ax)  # Alterei para 'bar' (barras verticais)
+ax.set_title("Número de cidades por cada país com base nos dados bons", color='black')  # Cor do título em preto
+ax.tick_params(axis='x', colors='black')  # Cor dos rótulos do eixo X em preto
+ax.tick_params(axis='y', colors='black')  # Cor dos rótulos do eixo Y em preto
 ax.set_facecolor('none')  # Cor de fundo do gráfico transparente
 fig.patch.set_alpha(0)  # Definir o fundo do gráfico como transparente
 
-plt.subplots_adjust(wspace=0.4)
-# Exibe os gráficos lado a lado
+plt.subplots_adjust(hspace=0.4)  # Ajuste o espaço entre os gráficos verticais
+# Exibe os gráficos um abaixo do outro
 st.pyplot(fig)
+
 # Criar a estrutura de colunas para os gráficos
 st.header("Visão geral dos dados faltantes divididos por cidades que possuem dados bons e dados ruins")
 # Criar a estrutura de colunas para os gráficos
@@ -88,7 +89,7 @@ with col1:
     
     # Gráfico 1: Variáveis iniciais dos dados bons
     fig2, ax2 = plt.subplots(figsize=(11, 9), facecolor='none')  # Fundo transparente
-    msno.matrix(data_good.iloc[:, 2:25], color=(0.7, 0.8, 0.7), ax=ax2)  # Gráfico
+    msno.matrix(data_good.iloc[:, 2:25], color=(0, 0, 0.8), ax=ax2)  # Gráfico
     ax2.set_title("Missing values (first variables)", fontsize=12)  # Reduzir o tamanho do título
     ax2.tick_params(axis='x', labelsize=8)  # Reduzir tamanho das legendas no eixo x
     ax2.tick_params(axis='y', labelsize=8)  # Reduzir tamanho das legendas no eixo y
@@ -97,7 +98,7 @@ with col1:
 
     # Gráfico 2: Variáveis finais dos dados bons
     fig3, ax3 = plt.subplots(figsize=(11, 9), facecolor='none')  # Fundo transparente
-    msno.matrix(data_good.iloc[:, 26:], color=(0.7, 0.8, 0.7), ax=ax3)  # Gráfico
+    msno.matrix(data_good.iloc[:, 26:], color=(0, 0, 0.8), ax=ax3)  # Gráfico
     ax3.set_title("Missing values (remaining variables)", fontsize=12)  # Reduzir o tamanho do título
     ax3.tick_params(axis='x', labelsize=8)  # Reduzir tamanho das legendas no eixo x
     ax3.tick_params(axis='y', labelsize=8)  # Reduzir tamanho das legendas no eixo y
@@ -110,7 +111,7 @@ with col2:
     
     # Gráfico 1: Variáveis iniciais dos dados ruins
     fig4, ax4 = plt.subplots(figsize=(11, 9), facecolor='none')  # Fundo transparente
-    msno.matrix(data_bad.iloc[:, 2:25], color=(0.7, 0.8, 0.7), ax=ax4)  # Gráfico
+    msno.matrix(data_bad.iloc[:, 2:25], color=(0, 0, 0.8), ax=ax4)  # Gráfico
     ax4.set_title("Missing values (first variables)", fontsize=12)  # Reduzir o tamanho do título
     ax4.tick_params(axis='x', labelsize=8)  # Reduzir tamanho das legendas no eixo x
     ax4.tick_params(axis='y', labelsize=8)  # Reduzir tamanho das legendas no eixo y
@@ -119,7 +120,7 @@ with col2:
 
     # Gráfico 2: Variáveis finais dos dados ruins
     fig5, ax5 = plt.subplots(figsize=(11, 9), facecolor='none')  # Fundo transparente
-    msno.matrix(data_bad.iloc[:, 26:], color=(0.7, 0.8, 0.7), ax=ax5)  # Gráfico
+    msno.matrix(data_bad.iloc[:, 26:], color=(0, 0, 0.8), ax=ax5)  # Gráfico
     ax5.set_title("Missing values (remaining variables)", fontsize=12)  # Reduzir o tamanho do título
     ax5.tick_params(axis='x', labelsize=8)  # Reduzir tamanho das legendas no eixo x
     ax5.tick_params(axis='y', labelsize=8)  # Reduzir tamanho das legendas no eixo y

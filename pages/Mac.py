@@ -67,7 +67,7 @@ if "McMeal (USD)" in data.columns and "Média Salário (USD)" in data.columns:
         vertical_spacing=0.3
     )
 
-    # Gráfico de salário com cor representando a média
+    # Gráfico de salário com cor sólida
     fig_extremos.add_trace(
         px.bar(
             medias,
@@ -75,12 +75,11 @@ if "McMeal (USD)" in data.columns and "Média Salário (USD)" in data.columns:
             x="Categoria",
             orientation='v',  # Alterado para vertical
             labels={"Categoria": "Categoria", "Média Salário (USD)": "Média Salarial (USD)"},
-            color="Média Salário (USD)",  # Adicionando cor baseada no valor do salário
-            color_continuous_scale="YlOrRd"  # Escala de cores: de tons frios (amarelo) para quentes (vermelho)
+            color_discrete_sequence=["blue"]  # Cor sólida vermelha
         ).data[0], row=1, col=1
     )
 
-    # Gráfico de McMeal com cor representando a média
+    # Gráfico de McMeal com cor sólida
     fig_extremos.add_trace(
         px.bar(
             medias,
@@ -88,8 +87,7 @@ if "McMeal (USD)" in data.columns and "Média Salário (USD)" in data.columns:
             x="Categoria",
             orientation='v',  # Alterado para vertical
             labels={"Categoria": "Categoria", "McMeal (USD)": "Preço Médio McMeal (USD)"},
-            color="McMeal (USD)",  # Adicionando cor baseada no valor do preço do McMeal
-            color_continuous_scale="YlOrRd"  # Escala de cores: de tons frios (amarelo) para quentes (vermelho)
+            color_discrete_sequence=["blue"]  # Cor sólida vermelha
         ).data[0], row=2, col=1
     )
 
@@ -102,6 +100,8 @@ if "McMeal (USD)" in data.columns and "Média Salário (USD)" in data.columns:
     )
     st.plotly_chart(fig_extremos)
 
+    st.write("A comparação entre os dois gráficos mostra uma diferença notável entre os países com os maiores e os menores salários, tanto em termos de salário médio quanto de preço do McMeal. Nos países com os 50 maiores salários, a média salarial é significativamente mais alta (acima de 2.500 USD), enquanto nos países com os 50 menores salários, a média salarial fica abaixo de 500 USD. Curiosamente, o preço médio do McMeal segue uma tendência oposta: nos países com os menores salários, o preço do McMeal é mais baixo, abaixo de 3 USD, enquanto nos países com os maiores salários, o preço ultrapassa 8 USD. Isso sugere que, embora os países com salários mais altos tenham maior poder de compra, também apresentam um custo de vida mais elevado, refletido no preço dos produtos, como o McMeal.")
+
     # **Análise por Continente**
     agrupado_continente = data_filtrada.groupby("Continente")[["McMeal (USD)", "Média Salário (USD)"]].mean().reset_index()
     agrupado_continente = agrupado_continente.sort_values(by="Média Salário (USD)", ascending=True)
@@ -112,7 +112,7 @@ if "McMeal (USD)" in data.columns and "Média Salário (USD)" in data.columns:
         vertical_spacing=0.3
     )
 
-    # Gráfico de salário com cores variando conforme o valor
+    # Gráfico de salário com cor sólida
     fig_continente.add_trace(
         px.bar(
             agrupado_continente,
@@ -120,12 +120,11 @@ if "McMeal (USD)" in data.columns and "Média Salário (USD)" in data.columns:
             x="Continente",
             orientation='v',  # Alterado para vertical
             labels={"Continente": "Continente", "Média Salário (USD)": "Média Salarial (USD)"},
-            color="Média Salário (USD)",  # Adicionando cor baseada no valor do salário
-            color_continuous_scale="YlOrRd"  # Escala de cores: de tons frios (amarelo) para quentes (vermelho)
+            color_discrete_sequence=["blue"]  # Cor sólida vermelha
         ).data[0], row=1, col=1
     )
 
-    # Gráfico de McMeal com cores variando conforme o valor
+    # Gráfico de McMeal com cor sólida
     fig_continente.add_trace(
         px.bar(
             agrupado_continente,
@@ -133,8 +132,7 @@ if "McMeal (USD)" in data.columns and "Média Salário (USD)" in data.columns:
             x="Continente",
             orientation='v',  # Alterado para vertical
             labels={"Continente": "Continente", "McMeal (USD)": "Preço Médio McMeal (USD)"},
-            color="McMeal (USD)",  # Adicionando cor baseada no valor do preço do McMeal
-            color_continuous_scale="YlOrRd"  # Escala de cores: de tons frios (amarelo) para quentes (vermelho)
+            color_discrete_sequence=["blue"]  # Cor sólida vermelha
         ).data[0], row=2, col=1
     )
 
@@ -146,6 +144,7 @@ if "McMeal (USD)" in data.columns and "Média Salário (USD)" in data.columns:
         title_x=0
     )
     st.plotly_chart(fig_continente)
+    st.write("Os gráficos mostram uma relação entre o salário médio e o preço do McMeal nos diferentes continentes. Nos continentes com salários mais elevados, como Oceania e Europa, o preço do McMeal também tende a ser mais alto, ultrapassando 6 USD, sendo a Oceania a que apresenta os valores mais altos. Em contrapartida, nos continentes com salários mais baixos, como África e Ásia, o preço do McMeal é mais baixo, variando entre 3 e 4 USD. Isso indica que o preço do McMeal acompanha a média salarial, refletindo o poder de compra em cada região.")
 
     # **Estatísticas descritivas**
     st.write("### Estatísticas por País (Salário Médio e McDonald's)")

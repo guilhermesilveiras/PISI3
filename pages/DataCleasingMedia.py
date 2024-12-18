@@ -73,16 +73,8 @@ st.pyplot(fig2)
 # Relatório final
 st.write("**Estratégia de Preenchimento de Dados Ausentes:**")
 st.write(
-    "Para colunas numéricas, utilizamos a média dos valores para preencher os dados faltantes. "
-    "Já para as colunas categóricas, utilizamos a moda, mantendo coerência estatística e representatividade."
+    "Foi utilizado o método de mediana IQR para preencher os valores faltantes nas variáveis numéricas e o método de moda para preencher os valores faltantes nas variáveis categóricas."
 )
 
 st.write("**Relatório de Comparação - Limpeza de Dados**")
 st.write(f"**Diferença no Total de Valores Faltantes**: {data.isnull().sum().sum() - data_filled.isnull().sum().sum()}")
-
-# Estatísticas descritivas
-st.write("**Estatísticas Descritivas do Dataset Original**")
-st.write(data.describe())
-
-st.write("**Estatísticas Descritivas do Dataset Limpo**")
-st.write(data_filled.describe())

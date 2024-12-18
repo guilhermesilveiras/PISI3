@@ -105,13 +105,13 @@ def plot_heatmap_chart(df, x_col, y_col, title, color_col, color_scale):
     )
     st.plotly_chart(fig)
 
-# Gráfico: Preço do Km do Táxi (com escala de cores "Blues")
+# Gráfico: Preço do Km do Táxi (com escala de cores "Viridis" para maior contraste)
 st.write("#### Preço do Km do Táxi")
-plot_heatmap_chart(grouped_data, grouping_col, "Preço do Km do Táxi (USD)", "Preço Médio do Km do Táxi", "Preço do Km do Táxi (USD)", "Blues")
+plot_heatmap_chart(grouped_data, grouping_col, "Preço do Km do Táxi (USD)", "Preço Médio do Km do Táxi", "Preço do Km do Táxi (USD)", "Viridis")
 
-# Gráfico: Preço da Gasolina (com escala de cores "Reds")
+# Gráfico: Preço da Gasolina (com escala de cores "Plasma" para maior contraste)
 st.write("#### Preço da Gasolina")
-plot_heatmap_chart(grouped_data, grouping_col, "Preço da Gasolina (USD)", "Preço Médio da Gasolina", "Preço da Gasolina (USD)", "Reds")
+plot_heatmap_chart(grouped_data, grouping_col, "Preço da Gasolina (USD)", "Preço Médio da Gasolina", "Preço da Gasolina (USD)", "Plasma")
 
 # Estatísticas descritivas dos dados filtrados
 st.write("### Estatísticas Descritivas dos Dados Filtrados")
