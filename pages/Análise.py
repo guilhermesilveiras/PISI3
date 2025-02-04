@@ -1,11 +1,9 @@
 # Import libraries
+import warnings
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-import numpy as np
 import missingno as msno
-from scipy import stats
-import warnings
 import streamlit as st
 
 # Ignorar avisos
