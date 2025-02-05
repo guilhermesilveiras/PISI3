@@ -7,7 +7,7 @@ from sklearn.manifold import TSNE
 from sklearn.cluster import DBSCAN
 import matplotlib.pyplot as plt
 
-st.title("🏙️ Sistema de Recomendação de Cidades Similares")
+st.title("🏙️ Sistema de Recomendação de Cidades Similares utlizando DBSCAN e KNN")
 
 # Carregar dados
 @st.cache_data
@@ -108,3 +108,5 @@ if st.button("Buscar Cidades Similares"):
     comparacao = pd.concat([data.iloc[[idx]], recomendadas])[cols]
     comparacao = comparacao.rename(columns=DESCRICOES)
     st.dataframe(comparacao.style.format({col: "{:.2f}" for col in DESCRICOES.values()}))
+
+    st.write("recomendação com base em cidades com perfis de custo de vida semelhantes, utilizando as estrategias DBSCAN (Density-Based Spatial Clustering) para identificar grupos naturais de cidades com características similares (proporção em relação aos custos) e K-NN k-Nearest Neighbors: Para encontrar as cidades mais próximas dentro desses grupos")

@@ -85,5 +85,7 @@ def comparison_page():
                 mime='text/csv'
             )
 
-# Chamar a função da página
+
 comparison_page()
+
+
