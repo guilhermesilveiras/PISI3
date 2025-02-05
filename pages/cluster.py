@@ -75,11 +75,11 @@ Utilizamos o método do cotovelo para determinar o número ideal de clusters. O 
 
 # plotar o gráfico do cotovelo
 fig, ax = plt.subplots(figsize=(10, 6), facecolor='none')
-ax.plot(range_clusters, distortions, marker='o', linestyle='--', color='b')
-ax.set_title('Método do Cotovelo para Escolha do Número de Clusters', fontsize=14)
-ax.set_xlabel('Número de Clusters', fontsize=12)
-ax.set_ylabel('Inércia (Distortion)', fontsize=12)
-ax.grid(True, linestyle='--', alpha=0.7)
+ax.plot(range_clusters, distortions, marker='o', linestyle='--', color='lightblue')
+ax.set_title('Método do Cotovelo para Escolha do Número de Clusters', fontsize=14, color='white')
+ax.set_xlabel('Número de Clusters', fontsize=12, color='white')
+ax.set_ylabel('Inércia (Distortion)', fontsize=12, color='white')
+ax.grid(True, linestyle='--', alpha=1)
 ax.set_xticks(range_clusters)
 ax.set_facecolor('none')
 fig.patch.set_alpha(0)
