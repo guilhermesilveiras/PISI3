@@ -73,8 +73,8 @@ if data is not None:
         # Visualização PCA
         fig1, ax1 = plt.subplots(figsize=(10, 6))
         scatter = ax1.scatter(data_pca[:, 0], data_pca[:, 1], c=clusters, cmap='tab20', alpha=0.7)
-        ax1.set_xlabel('Componente Principal 1')
-        ax1.set_ylabel('Componente Principal 2')
+        ax1.set_xlabel('FEATURE PRINCIPAL 1')
+        ax1.set_ylabel('FEATURE PRINCIPAL 2')
         plt.colorbar(scatter)
         st.pyplot(fig1)
         
@@ -99,8 +99,9 @@ if data is not None:
         
         st.dataframe(styled_table)
 
+        st.write("A tabela exibe as médias dos valores padronizados (escala Z) para cada cluster, utilizando valor original, media global da feature, desvio padrão global da feature")
+        st.write("interface iterativa adequada para escolher quantos clusters e afinar ainda mais a diferença entre os clusters gerados com características semelhantes")
         
-        # Boxplot Interativo
         st.subheader("Análise Detalhada por Cluster")
         boxplot_feature = st.selectbox(
             "Selecione a característica para visualização:",
