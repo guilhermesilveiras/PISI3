@@ -1,0 +1,10 @@
+.venv/Scripts/python.exe
+.venv/Scripts/pythonw.exe
+.venv/Scripts/streamlit.cmd
+.venv/Scripts/streamlit.exe
+.venv/Scripts/ttx.exe
+.venv/Scripts/watchmedo.exe
+.venv/share/jupyter/nbextensions/pydeck/extensionRequires.js
+.venv/share/jupyter/nbextensions/pydeck/index.js
+.venv/share/jupyter/nbextensions/pydeck/index.js.map
+.venv/share/man/man1/ttx.1
