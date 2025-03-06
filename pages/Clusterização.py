@@ -35,7 +35,7 @@ st.title("Análise de Cluster de Cidades por Custo de Vida")
 @st.cache_data
 def load_data():
     try:
-        df = pd.read_csv("data.csv")
+        df = pd.read_csv("data_cleaned.csv")
         df = df.dropna()
         return df
     except FileNotFoundError:
@@ -127,3 +127,5 @@ if data is not None:
         st.subheader("Cidades por Cluster")
         selected_cluster = st.selectbox("Selecione um cluster:", range(k))
         st.write(data[data['Cluster'] == selected_cluster][['city', 'country']])
+
+        st.write("Aplica o algoritmo K-means para agrupar cidades com base nas similaridades de custo de vida, exibindo a lista de cidades por cluster, com um boxplot permitindo o usuário verificar a distribuição de uma variável específica dentros dos clusters")

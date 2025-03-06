@@ -14,7 +14,7 @@ st.title("🏙️ Sistema de Recomendação de Cidades Similares")
 # Carregar dados
 @st.cache_data
 def load_data():
-    return pd.read_csv("data.csv").dropna(subset=['city', 'country'])
+    return pd.read_csv("data_cleaned.csv").dropna(subset=['city', 'country'])
 
 data = load_data()
 

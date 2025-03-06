@@ -8,7 +8,7 @@ from sklearn.cluster import KMeans
 import seaborn as sns
 
 # Carregar os dados
-data = pd.read_csv('data.csv')
+data = pd.read_csv('data_cleaned.csv')
 
 # Selecionando apenas dados numéricos
 numeric_data = data.select_dtypes(include=['float64', 'int64']).drop(columns=['data_quality'], errors='ignore')

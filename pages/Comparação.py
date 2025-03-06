@@ -9,7 +9,7 @@ def comparison_page():
     @st.cache_data
     def load_comparison_data():
         try:
-            df = pd.read_csv("data.csv")
+            df = pd.read_csv("data_cleaned.csv")
             df = df.dropna(subset=['city', 'country'])
             df['city_country'] = df['city'] + ', ' + df['country']  # Criar identificador único
             return df
