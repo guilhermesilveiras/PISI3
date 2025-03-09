@@ -4,7 +4,9 @@ import numpy as np
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
+from sklearn.metrics import silhouette_score, silhouette_samples
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 import seaborn as sns
 
 # Dicionário com nomes completos das features
@@ -39,7 +41,7 @@ def load_data():
         df = df.dropna()
         return df
     except FileNotFoundError:
-        st.error("Arquivo 'data.csv' não encontrado!")
+        st.error("Arquivo 'data_cleaned.csv' não encontrado!")
         return None
 
 data = load_data()
@@ -61,33 +63,73 @@ if data is not None:
         scaler = StandardScaler()
         data_scaled = scaler.fit_transform(data[selected_features])
         
-        # Redução de dimensionalidade
+        # Redução de dimensionalidade para visualização com PCA
         pca = PCA(n_components=2)
         data_pca = pca.fit_transform(data_scaled)
         
-        # Clusterização
+        # Clusterização com KMeans
         kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
         clusters = kmeans.fit_predict(data_scaled)
         data['Cluster'] = clusters
         
-        # Visualização PCA
+        # Cálculo do Silhouette Score
+        sil_score = silhouette_score(data_scaled, clusters)
+        st.write(f"**Silhouette Score para k = {k}: {sil_score:.2f}**")
+        
+        # Gráfico de Silhueta para o número de clusters selecionado
+        silhouette_vals = silhouette_samples(data_scaled, clusters)
+        fig_sil, ax_sil = plt.subplots(figsize=(10, 6))
+        y_lower = 10
+        for i in range(k):
+            # Valores de silhueta para o cluster i, ordenados
+            ith_cluster_silhouette_values = silhouette_vals[clusters == i]
+            ith_cluster_silhouette_values.sort()
+            size_cluster_i = ith_cluster_silhouette_values.shape[0]
+            y_upper = y_lower + size_cluster_i
+            
+            color = cm.nipy_spectral(float(i) / k)
+            ax_sil.fill_betweenx(np.arange(y_lower, y_upper),
+                                 0, ith_cluster_silhouette_values,
+                                 facecolor=color, edgecolor=color, alpha=0.7)
+            ax_sil.text(-0.05, y_lower + 0.5 * size_cluster_i, str(i))
+            y_lower = y_upper + 10  # Espaço entre os clusters
+        
+        ax_sil.set_title("Gráfico de Silhueta para k = {}".format(k))
+        ax_sil.set_xlabel("Coeficiente de Silhueta")
+        ax_sil.set_ylabel("Clusters")
+        ax_sil.axvline(x=sil_score, color="red", linestyle="--", label=f"Média: {sil_score:.2f}")
+        ax_sil.legend(loc="upper right")
+        ax_sil.set_yticks([])  # Remove marcas no eixo y
+        ax_sil.set_xlim([-0.1, 1])
+        st.pyplot(fig_sil)
+        
+        # Gráfico do Método do Cotovelo
+        if st.checkbox("Mostrar Método do Cotovelo"):
+            inertia_values = []
+            k_range = range(2, 11)
+            for n in k_range:
+                kmeans_temp = KMeans(n_clusters=n, random_state=42, n_init=10)
+                kmeans_temp.fit(data_scaled)
+                inertia_values.append(kmeans_temp.inertia_)
+            fig_elbow, ax_elbow = plt.subplots(figsize=(10, 6))
+            ax_elbow.plot(list(k_range), inertia_values, marker='o')
+            ax_elbow.set_title("Método do Cotovelo")
+            ax_elbow.set_xlabel("Número de Clusters")
+            ax_elbow.set_ylabel("Inércia")
+            st.pyplot(fig_elbow)
+        
+        # Visualização PCA com clusters
         fig1, ax1 = plt.subplots(figsize=(10, 6))
         scatter = ax1.scatter(data_pca[:, 0], data_pca[:, 1], c=clusters, cmap='tab20', alpha=0.7)
-        ax1.set_xlabel('FEATURE PRINCIPAL 1')
-        ax1.set_ylabel('FEATURE PRINCIPAL 2')
-        plt.colorbar(scatter)
+        ax1.set_xlabel('Componente Principal 1')
+        ax1.set_ylabel('Componente Principal 2')
+        plt.colorbar(scatter, ax=ax1)
         st.pyplot(fig1)
         
-        # Tabela de médias
+        # Tabela de médias dos clusters
         st.subheader("Características dos Clusters")
-        
-        # Calcular médias padronizadas
         cluster_stats = data.groupby('Cluster')[selected_features].mean()
-        
-        # Renomear as colunas para os nomes descritivos
         cluster_stats = cluster_stats.rename(columns=FEATURE_DICT)
-        
-        # Formatando a tabela
         st.write("**Médias Padronizadas por Cluster (Escala Z):**")
         styled_table = cluster_stats.style \
             .background_gradient(cmap='Blues', axis=0) \
@@ -96,12 +138,10 @@ if data is not None:
                 'selector': 'th',
                 'props': [('background-color', '#404040'), ('color', 'white')]
             }])
-        
         st.dataframe(styled_table)
-
-        st.write("A tabela exibe as médias dos valores padronizados (escala Z) para cada cluster, utilizando valor original, media global da feature, desvio padrão global da feature")
-        st.write("interface iterativa adequada para escolher quantos clusters e afinar ainda mais a diferença entre os clusters gerados com características semelhantes")
+        st.write("A tabela exibe as médias dos valores padronizados (escala Z) para cada cluster.")
         
+        # Análise Detalhada por Cluster
         st.subheader("Análise Detalhada por Cluster")
         boxplot_feature = st.selectbox(
             "Selecione a característica para visualização:",
@@ -117,15 +157,14 @@ if data is not None:
             data=data,
             palette='Set2',
             showmeans=True,
-            meanprops={"marker":"o", "markerfacecolor":"white", "markeredgecolor":"black"}
+            meanprops={"marker": "o", "markerfacecolor": "white", "markeredgecolor": "black"}
         )
         ax2.set_title(f'Distribuição de {FEATURE_DICT[boxplot_feature]} por Cluster')
         ax2.set_ylabel('Valor (USD)')
         st.pyplot(fig2)
         
-        # Cidades por cluster
+        # Cidades por Cluster
         st.subheader("Cidades por Cluster")
         selected_cluster = st.selectbox("Selecione um cluster:", range(k))
         st.write(data[data['Cluster'] == selected_cluster][['city', 'country']])
-
-        st.write("Aplica o algoritmo K-means para agrupar cidades com base nas similaridades de custo de vida, exibindo a lista de cidades por cluster, com um boxplot permitindo o usuário verificar a distribuição de uma variável específica dentros dos clusters")
+        st.write("Agrupa cidades com base em similaridades de custo de vida, possibilitando análise detalhada por cluster.")
