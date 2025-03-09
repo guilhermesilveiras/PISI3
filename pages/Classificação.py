@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.svm import SVC
+from sklearn.naive_bayes import GaussianNB
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 from sklearn.preprocessing import StandardScaler
@@ -13,50 +15,159 @@ st.set_page_config(page_title="Classificador de Custos de Viagem", layout="wide"
 
 def criar_labels_reais(df):
     """Cria classificação real com distribuição balanceada"""
-    # Limiares adaptativos baseados nos dados
-    p_aluguel = df['x48'].quantile([0.85, 0.95]).values
-    p_salario = df['x54'].quantile([0.80, 0.90]).values
-    p_lazer = (df['x40'] + df['x41']).quantile([0.75, 0.90]).values
+    # Versão implementada da função
+    # Aqui usamos KMeans para criar clusters baseados nas features numéricas
+    # que serão depois usados como classes
+    from sklearn.cluster import KMeans
     
-    # Condições melhoradas
-    conditions = [
-        # Premium Travel (Top 15% aluguel + Top 20% salário)
-        (df['x48'] >= p_aluguel[0]) & (df['x54'] >= p_salario[0]),
-        
-        # City Explorer Luxury (Top 25% lazer + internet razoável)
-        ((df['x40'] + df['x41']) >= p_lazer[0]) & (df['x38'] < df['x38'].median()),
-        
-        # Backpacker Budget (Baixo custo essencial)
-        (df['x1'] <= df['x1'].quantile(0.25)) & 
-        (df['x28'] <= df['x28'].quantile(0.25)),
-    ]
+    # Selecionar colunas para clustering
+    cluster_cols = [col for col in df.columns if col.startswith('x') and col not in ['x55']]
     
-    choices = [
-        'Premium Travel',
-        'City Explorer Luxury',
-        'Backpacker Budget'
-    ]
+    # Normalizar dados para clustering
+    from sklearn.preprocessing import StandardScaler
+    scaler = StandardScaler()
+    df_scaled = scaler.fit_transform(df[cluster_cols])
     
-    df['real_class'] = np.select(
-        conditions,
-        choices,
-        default='Mid-range Nomad'
-    ).astype(str)
+    # Determinar número ideal de clusters (4 classes conforme legenda no código)
+    n_clusters = 4
     
-    # Garantir distribuição mínima
-    class_counts = df['real_class'].value_counts()
-    min_cities = max(5, int(len(df)*0.05))  # Pelo menos 5 cidades ou 5%
+    # Aplicar KMeans
+    kmeans = KMeans(n_clusters=n_clusters, random_state=42, n_init=10)
+    clusters = kmeans.fit_predict(df_scaled)
     
-    for cls, col, q in [('Premium Travel', 'x48', 0.85),
-                        ('City Explorer Luxury', 'x40', 0.75)]:
-        if class_counts.get(cls, 0) < min_cities:
-            candidates = df[df['real_class'] == 'Mid-range Nomad']
-            if not candidates.empty:
-                threshold = candidates[col].quantile(q)
-                df.loc[(df['real_class'] == 'Mid-range Nomad') & 
-                       (df[col] >= threshold), 'real_class'] = cls
+    # Mapear clusters para classes mais interpretáveis
+    class_mapping = {
+        0: "Premium Travel",
+        1: "City Explorer Luxury",
+        2: "Mid-range Nomad",
+        3: "Backpacker Budget"
+    }
+    
+    # Adicionar coluna de classe ao dataframe
+    df['real_class'] = [class_mapping[c] for c in clusters]
     
     return df
+
+def treinar_avaliar_modelo(nome_modelo, modelo, X_train_scaled, y_train, X_test_scaled, y_test, class_dist):
+    """Treina e avalia um modelo de classificação"""
+    # Treinar modelo
+    modelo.fit(X_train_scaled, y_train)
+    
+    # Avaliação
+    y_pred = modelo.predict(X_test_scaled)
+    accuracy = accuracy_score(y_test, y_pred)
+    class_report = classification_report(y_test, y_pred, output_dict=True)
+    cm = confusion_matrix(y_test, y_pred, labels=class_dist.index)
+    
+    # Feature importance (apenas para Random Forest)
+    if hasattr(modelo, 'feature_importances_'):
+        feat_importances = modelo.feature_importances_
+    else:
+        feat_importances = None
+    
+    return {
+        'nome': nome_modelo,
+        'modelo': modelo,
+        'predicoes': y_pred,
+        'acuracia': accuracy,
+        'report': class_report,
+        'conf_matrix': cm,
+        'feat_importances': feat_importances
+    }
+
+def exibir_metricas(resultados, X, y, numeric_cols, df):
+    """Exibe métricas e gráficos para o modelo selecionado"""
+    nome_modelo = resultados['nome']
+    accuracy = resultados['acuracia']
+    class_report = resultados['report']
+    cm = resultados['conf_matrix']
+    feat_importances = resultados['feat_importances']
+    
+    st.header(f"Análise do Modelo: {nome_modelo}")
+    
+    # Métricas gerais
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("Acurácia Geral", f"{accuracy:.2%}")
+    with col2:
+        st.metric("Total de Cidades", len(df))
+    with col3:
+        st.metric("Classes Únicas", len(y.unique()))
+    
+    # Matriz de confusão
+    st.subheader("Matriz de Confusão")
+    fig_cm, ax_cm = plt.subplots(figsize=(10,8))
+    class_dist = y.value_counts()
+    sns.heatmap(cm, annot=True, fmt='d', cmap='viridis', 
+               xticklabels=class_dist.index, yticklabels=class_dist.index, ax=ax_cm)
+    ax_cm.set_xlabel("Previsto")
+    ax_cm.set_ylabel("Real")
+    st.pyplot(fig_cm)
+    
+    # Tabela detalhada de métricas
+    st.subheader("Métricas Detalhadas por Classe")
+    metrics_df = pd.DataFrame()
+    
+    # Por classe
+    for cls in class_dist.index:
+        if cls in class_report:
+            cls_metrics = class_report[cls]
+            metrics_df = pd.concat([metrics_df, pd.DataFrame({
+                'Classe': [cls],
+                'Precisão': [cls_metrics['precision']],
+                'Recall': [cls_metrics['recall']],
+                'F1-score': [cls_metrics['f1-score']],
+                'Suporte': [cls_metrics['support']]
+            })], ignore_index=True)
+    
+    # Adicionar média simples
+    metrics_df = pd.concat([metrics_df, pd.DataFrame({
+        'Classe': ['Média Simples'],
+        'Precisão': [metrics_df['Precisão'].mean()],
+        'Recall': [metrics_df['Recall'].mean()],
+        'F1-score': [metrics_df['F1-score'].mean()],
+        'Suporte': [metrics_df['Suporte'].sum() / len(metrics_df)]
+    })], ignore_index=True)
+    
+    # Adicionar médias do relatório
+    for avg_type in ['macro avg', 'weighted avg']:
+        if avg_type in class_report:
+            metrics_df = pd.concat([metrics_df, pd.DataFrame({
+                'Classe': [avg_type.replace('avg', 'Média').title()],
+                'Precisão': [class_report[avg_type]['precision']],
+                'Recall': [class_report[avg_type]['recall']],
+                'F1-score': [class_report[avg_type]['f1-score']],
+                'Suporte': [class_report[avg_type]['support']]
+            })], ignore_index=True)
+    
+    # Formatação para apresentação
+    formatted_metrics = metrics_df.copy()
+    for col in ['Precisão', 'Recall', 'F1-score']:
+        formatted_metrics[col] = formatted_metrics[col].apply(lambda x: f"{x:.2%}")
+    formatted_metrics['Suporte'] = formatted_metrics['Suporte'].astype(int)
+    
+    # Exibir tabela
+    st.table(formatted_metrics)
+    
+    # Exportar métricas
+    csv = metrics_df.to_csv(index=False).encode('utf-8')
+    st.download_button(
+        f"📊 Baixar Métricas ({nome_modelo}) CSV",
+        csv,
+        f"metricas_{nome_modelo.lower().replace(' ', '_')}.csv",
+        "text/csv",
+        key=f'download-metrics-{nome_modelo.lower().replace(" ", "_")}'
+    )
+    
+    # Feature importance (apenas para Random Forest)
+    if feat_importances is not None:
+        st.subheader("Features Mais Importantes")
+        feat_imp_series = pd.Series(feat_importances, index=numeric_cols)
+        top_features = feat_imp_series.nlargest(10)
+        fig_imp, ax_imp = plt.subplots(figsize=(10,6))
+        sns.barplot(x=top_features.values, y=top_features.index, ax=ax_imp, palette='viridis')
+        plt.title('Top 10 Features que Impactam a Classificação')
+        st.pyplot(fig_imp)
 
 def main():
     # Aplicar o tema escuro do Matplotlib
@@ -95,69 +206,105 @@ def main():
         X_train_scaled = scaler.fit_transform(X_train)
         X_test_scaled = scaler.transform(X_test)
 
-        # Modelo com balanceamento aprimorado
-        model = RandomForestClassifier(
-            n_estimators=300,
-            class_weight='balanced',
-            max_depth=10,
-            min_samples_split=10,
-            random_state=42
-        )
-        model.fit(X_train_scaled, y_train)
-
-        # Avaliação
-        y_pred = model.predict(X_test_scaled)
-        accuracy = accuracy_score(y_test, y_pred)
-        class_report = classification_report(y_test, y_pred, output_dict=True)
+        # Definir os modelos
+        modelos = {
+            "Random Forest": RandomForestClassifier(
+                n_estimators=300,
+                class_weight='balanced',
+                max_depth=10,
+                min_samples_split=10,
+                random_state=42
+            ),
+            "SVM": SVC(
+                kernel='rbf',
+                C=1.0,
+                gamma='scale',
+                class_weight='balanced',
+                probability=True,
+                random_state=42
+            ),
+            "Naive Bayes": GaussianNB()
+        }
         
-        # Interface
-        st.header("Análise do Modelo")
-        
-        # Métricas
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            st.metric("Acurácia Geral", f"{accuracy:.2%}")
-        with col2:
-            st.metric("Total de Cidades", len(df))
-        with col3:
-            st.metric("Classes Únicas", len(y.unique()))
-        
-        # Distribuição de classes
-        st.subheader("Distribuição das Classes")
-        fig1, ax1 = plt.subplots(figsize=(10,6))
+        # Treinar e avaliar modelos
         class_dist = y.value_counts()
-        sns.barplot(x=class_dist.index, y=class_dist.values, ax=ax1, order=class_dist.index, palette='viridis')
-        for p in ax1.patches:
-            ax1.annotate(f'{p.get_height()}\n({p.get_height()/len(df):.1%})', 
-                        (p.get_x() + p.get_width()/2., p.get_height()),
-                        ha='center', va='center', color='white')
-        plt.xticks(rotation=45)
-        st.pyplot(fig1)
+        resultados_modelos = {}
         
-        # Matriz de confusão
-        st.subheader("Matriz de Confusão Detalhada")
-        fig2, ax2 = plt.subplots(figsize=(10,8))
-        cm = confusion_matrix(y_test, y_pred, labels=class_dist.index)
-        sns.heatmap(cm, annot=True, fmt='d', cmap='viridis', 
-                   xticklabels=class_dist.index, yticklabels=class_dist.index, ax=ax2)
-        ax2.set_xlabel("Previsto")
-        ax2.set_ylabel("Real")
-        st.pyplot(fig2)
+        for nome, modelo in modelos.items():
+            resultados_modelos[nome] = treinar_avaliar_modelo(
+                nome, modelo, X_train_scaled, y_train, X_test_scaled, y_test, class_dist
+            )
         
-        # Feature importance
-        st.subheader("Features Mais Importantes")
-        feat_importances = pd.Series(model.feature_importances_, index=numeric_cols)
-        top_features = feat_importances.nlargest(10)
-        fig3, ax3 = plt.subplots(figsize=(10,6))
-        sns.barplot(x=top_features.values, y=top_features.index, ax=ax3, palette='viridis')
-        plt.title('Top 10 Features que Impactam a Classificação')
-        st.pyplot(fig3)
+        # Comparação de acurácia entre modelos
+        st.header("Comparação de Modelos")
         
-
-        st.write("O classificador escolhido é o RandomForestClassifier para o aprendizado de máquina baseado em múltiplas árvores de decisão, que melhora a precisão e reduz o overfitting combinando previsões de várias árvores")
-
-        # Simulador Interativo
-        st.header("Simulador de Custos de Viagem")
+        # Gráfico de comparação
+        accuracies = {nome: res['acuracia'] for nome, res in resultados_modelos.items()}
+        fig_comp, ax_comp = plt.subplots(figsize=(10, 6))
+        sns.barplot(x=list(accuracies.keys()), y=list(accuracies.values()), palette='viridis')
+        for i, v in enumerate(accuracies.values()):
+            ax_comp.text(i, v + 0.01, f"{v:.2%}", ha='center')
+        ax_comp.set_ylim(0, 1.0)
+        ax_comp.set_title("Comparação de Acurácia entre Modelos")
+        ax_comp.set_ylabel("Acurácia")
+        st.pyplot(fig_comp)
+        
+        # Comparação de F1-score por classe
+        f1_por_modelo = {}
+        classes = list(class_dist.index)
+        
+        for nome, res in resultados_modelos.items():
+            f1_scores = []
+            for cls in classes:
+                if cls in res['report']:
+                    f1_scores.append(res['report'][cls]['f1-score'])
+            f1_por_modelo[nome] = f1_scores
+        
+        f1_df = pd.DataFrame(f1_por_modelo, index=classes)
+        
+        st.subheader("Comparação de F1-Score por Classe")
+        fig_f1, ax_f1 = plt.subplots(figsize=(12, 8))
+        f1_df.plot(kind='bar', ax=ax_f1)
+        ax_f1.set_ylim(0, 1.0)
+        ax_f1.set_xlabel("Classe")
+        ax_f1.set_ylabel("F1-Score")
+        ax_f1.legend(title="Modelo")
+        st.pyplot(fig_f1)
+        
+        # Seleção de modelo para análise detalhada
+        modelo_selecionado = st.selectbox(
+            "Selecione um modelo para análise detalhada:",
+            list(resultados_modelos.keys())
+        )
+        
+        # Exibir análise detalhada do modelo selecionado
+        exibir_metricas(
+            resultados_modelos[modelo_selecionado], 
+            X, y, numeric_cols, df
+        )
+        
+        # Descricão dos modelos
+        st.header("Descrição dos Modelos de Classificação")
+        
+        st.markdown("""
+        ### Random Forest
+        O Random Forest cria múltiplas árvores de decisão e combina os resultados para classificação. 
+        Vantagens: Funciona bem com muitas features, captura relações não-lineares e interage bem com outliers.
+        
+        ### Support Vector Machine (SVM)
+        O SVM busca encontrar um hiperplano que separe melhor as classes no espaço de features.
+        Vantagens: Eficaz em espaços de alta dimensão, utiliza kernel para transformações de features.
+        
+        ### Naive Bayes
+        Classificador probabilístico baseado no teorema de Bayes com a suposição de independência entre features.
+        Vantagens: Simples, rápido e requer pouco treinamento (funciona bem mesmo com datasets menores).
+        """)
+        
+        # Simulador Interativo (usando o melhor modelo baseado na acurácia)
+        melhor_modelo_nome = max(accuracies, key=accuracies.get)
+        melhor_modelo = resultados_modelos[melhor_modelo_nome]['modelo']
+        
+        st.header(f"Simulador de Custos de Viagem (usando {melhor_modelo_nome})")
         with st.expander("Configurar Parâmetros", expanded=True):
             col1, col2 = st.columns(2)
             with col1:
@@ -188,7 +335,7 @@ def main():
                                max_value=df['x38'].max()*2,
                                value=df['x38'].median())
         
-        if st.button("▶️ Prever Classificação"):
+        if st.button(f"▶️ Prever Classificação ({melhor_modelo_nome})"):
             try:
                 # Criar dados de entrada
                 input_data = pd.DataFrame(
@@ -211,8 +358,13 @@ def main():
                 
                 # Pré-processar e prever
                 input_scaled = scaler.transform(input_data)
-                prediction = model.predict(input_scaled)[0]
-                proba = model.predict_proba(input_scaled).max()
+                prediction = melhor_modelo.predict(input_scaled)[0]
+                
+                # Obter probabilidades (para todos exceto Naive Bayes que já retorna)
+                if hasattr(melhor_modelo, 'predict_proba'):
+                    proba = melhor_modelo.predict_proba(input_scaled)[0].max()
+                else:
+                    proba = 0.0  # Fallback
                 
                 # Exibir resultados
                 st.success(f"**Classificação:** {prediction} | **Confiança:** {proba:.2%}")
@@ -231,8 +383,6 @@ def main():
         st.error("Arquivo 'data_cleaned.csv' não encontrado!")
     except Exception as e:
         st.error(f"Erro crítico: {str(e)}")
-
-
 
 if __name__ == "__main__":
     main()
