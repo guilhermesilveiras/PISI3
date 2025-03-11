@@ -10,7 +10,6 @@ from sklearn.impute import SimpleImputer
 from sklearn.pipeline import make_pipeline
 import matplotlib.pyplot as plt
 import seaborn as sns
-import shap
 
 # Configuração inicial
 st.set_page_config(page_title="Classificador de Custos de Viagem", layout="wide")
@@ -127,7 +126,7 @@ def main():
                 st.pyplot(fig)
 
         # Seção de Visualizações
-        tab1, tab2, tab3 = st.tabs(["📊 Matriz de Confusão", "🔍 Interpretabilidade SHAP", "🎮 Simulador"])
+        tab1, tab3 = st.tabs(["📊 Matriz de Confusão", "🎮 Simulador"])
 
         with tab1:
             st.header("Matriz de Confusão")
@@ -146,52 +145,6 @@ def main():
             ax.set_ylabel("Real")
             st.pyplot(fig)
 
-        with tab2:
-            st.header("Interpretabilidade com SHAP")
-            model_choice = st.selectbox("Selecione o modelo:", list(trained_models.keys()), key='shap')
-            
-            try:
-                # Tentar diferentes explicadores
-                try:
-                    explainer = shap.TreeExplainer(trained_models[model_choice])
-                    shap_values = explainer.shap_values(X_train_scaled[:50])
-                except:
-                    st.warning("Usando KernelExplainer...")
-                    X_sample = shap.sample(X_train_scaled, 100, random_state=42)
-                    explainer = shap.KernelExplainer(trained_models[model_choice].predict_proba, X_sample)
-                    shap_values = explainer.shap_values(X_train_scaled[:50], nsamples=100)
-
-                # Verificar estrutura dos valores SHAP
-                if isinstance(shap_values, list):
-                    shap_vals = shap_values[1] if len(shap_values) > 1 else shap_values[0]
-                else:
-                    shap_vals = shap_values
-
-                with plt.style.context('default'):
-                    col1, col2 = st.columns(2)
-                    
-                    with col1:
-                        st.markdown("### Importância Global")
-                        fig1, ax = plt.subplots(figsize=(10, 6))
-                        shap.summary_plot(shap_vals, X_train_scaled[:50], 
-                                        feature_names=numeric_cols, 
-                                        plot_type="bar", 
-                                        show=False)
-                        plt.gcf().set_facecolor('white')
-                        st.pyplot(fig1)
-                    
-                    with col2:
-                        st.markdown("### Distribuição de Impacto")
-                        fig2, ax = plt.subplots(figsize=(10, 6))
-                        shap.summary_plot(shap_vals, X_train_scaled[:50], 
-                                        feature_names=numeric_cols, 
-                                        plot_type="dot",
-                                        show=False)
-                        plt.gcf().set_facecolor('white')
-                        st.pyplot(fig2)
-                        
-            except Exception as e:
-                st.error(f"Erro SHAP: {str(e)}")
 
         with tab3:
             st.header("Simulador de Classificação")

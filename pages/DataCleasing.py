@@ -115,7 +115,7 @@ def clean_data(raw_df):
         return pd.DataFrame()
 
 def main():
-    st.title("🌍 Professional City Data Cleanser")
+    st.title("🌍 Data Cleasing do Dataset")
 
 
     st.write("A estratégia utilizada para o preenchimento dos dados foi a categorização dos mesmo, separando-os e aplicando diferentes tratamentos de acordo com o grupo inserido. O tratamento de outliers foi utilizando IQR para limitar valores extremos e substituir por percentis dentro de cada país")
@@ -125,8 +125,8 @@ def main():
         # Seção inicial
         st.header("🔍 Initial Analysis")
         col1, col2 = st.columns(2)
-        col1.metric("Total Cities", len(raw_df))
-        col2.metric("Columns", len(raw_df.columns))
+        col1.metric("Total de Cidades", len(raw_df))
+        col2.metric("Colunas", len(raw_df.columns))
         
         # Dados faltantes originais
         st.subheader("📉 Original Missing Data")
