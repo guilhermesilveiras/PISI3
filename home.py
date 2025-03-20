@@ -8,6 +8,7 @@ st.set_page_config(
 )
 
 # Título da página
+# titulo 1
 st.title("Análise comparativa do custo de vida ao redor do mundo")
 
 # propósito do trabalho
