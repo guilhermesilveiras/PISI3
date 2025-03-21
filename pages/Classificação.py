@@ -291,36 +291,3 @@ with tab2:
         st.pyplot(fig)
     else:
         st.write("Nenhum dado disponível para exibição no heatmap.")
-
-    # Explicando e demonstrando o processo de encoding
-    st.write("""
-    ### Importância do Encoding
-    O encoding é necessário para transformar dados categóricos em um formato numérico que pode ser utilizado por algoritmos de aprendizado de máquina. O LabelEncoder converte cada valor categórico em um número inteiro único.
-
-    ### Passo a Passo do Encoding
-    1. **Selecionar Colunas**: Selecionamos as colunas que queremos codificar.
-    2. **Criar DataFrame**: Criamos um DataFrame com as colunas selecionadas e adicionamos a coluna 'Cidade'.
-    3. **Codificar Dados**: Utilizamos o `LabelEncoder` da biblioteca `sklearn.preprocessing` para codificar os dados categóricos. Este algoritmo transforma cada valor categórico em um número inteiro único.
-    4. **Criar DataFrame Codificado**: Convertendo os dados codificados de volta para um DataFrame para facilitar a visualização.
-    """)
-
-    # Fazendo o encoding dos dados
-    label_encoder = LabelEncoder()
-    data_encoded = data.copy()
-    for column in data_encoded.select_dtypes(include=['object']).columns:
-        data_encoded[column] = label_encoder.fit_transform(data_encoded[column])
-
-    # Limitando as colunas ao mesmo conjunto utilizado na normalização
-    data_encoded = data_encoded[['city'] + list(columns_to_normalize.keys())]
-    data_encoded.columns = ['Cidade'] + list(columns_to_normalize.values())
-
-    # Criando um dashboard interativo para encoding
-    st.title("Encoding dos dados")
-    st.write("""
-    ### Importância do Encoding
-    O encoding é necessário para transformar dados categóricos em um formato numérico que pode ser utilizado por algoritmos de aprendizado de máquina.
-    """)
-
-    # Mostrando os dados com encoding no Streamlit
-    st.write("### Dados com Encoding:")
-    st.dataframe(data_encoded.style.background_gradient(cmap='YlOrRd', axis=0))
