@@ -15,6 +15,14 @@ import shap
 # Configuração inicial
 st.set_page_config(page_title="Classificador de Custos de Viagem")
 
+
+class_mapping = {
+    'Premium Travel': '🏨 Premium Travel',
+    'City Explorer Luxury': '🎭 City Explorer Luxury',
+    'Mid-range Nomad': '💼 Mid-range Nomad',
+    'Backpacker Budget': '🎒 Backpacker Budget' }
+
+
 tab1, tab2, tab3 = st.tabs(["Classificação", "Normalização e Encoding dos Dados", "Análise SHAP"])
 
 with tab1:
@@ -98,17 +106,46 @@ with tab1:
                 try:
                     model.fit(X_train_scaled, y_train)
                     y_pred = model.predict(X_test_scaled)
-                    accuracy = accuracy_score(y_test, y_pred)
                     report = classification_report(y_test, y_pred, output_dict=True)
                     
-                    trained_models[name] = model
+                    # Coletar métricas por classe
+                    for class_name in report:
+                        if class_name in ['accuracy', 'macro avg', 'weighted avg']:
+                            continue
+                        
+                        # Traduzir nome da classe
+                        display_class = class_mapping.get(class_name, class_name)
+                        
+                        model_results.append({
+                            'Modelo': name,
+                            'Classe': display_class,
+                            'Precisão': f"{report[class_name]['precision']:.2%}",
+                            'recall': f"{report[class_name]['recall']:.2%}",
+                            'F1-Score': f"{report[class_name]['f1-score']:.2%}",
+                            'Suporte': int(report[class_name]['support'])
+                        })
+                    
+                    # Adicionar médias
                     model_results.append({
-                        'Model': name,
-                        'Acurácia': accuracy,
-                        'Precisão': report['weighted avg']['precision'],
-                        'Recall': report['weighted avg']['recall'],
-                        'F1-Score': report['weighted avg']['f1-score']
+                        'Modelo': name,
+                        'Classe': 'Média Macro',
+                        'Precisão': f"{report['macro avg']['precision']:.2%}",
+                        'recall': f"{report['macro avg']['recall']:.2%}",
+                        'F1-Score': f"{report['macro avg']['f1-score']:.2%}",
+                        'Suporte': ''
                     })
+                    
+                    model_results.append({
+                        'Modelo': name,
+                        'Classe': 'Média Ponderada',
+                        'Precisão': f"{report['weighted avg']['precision']:.2%}",
+                        'recall': f"{report['weighted avg']['recall']:.2%}",
+                        'F1-Score': f"{report['weighted avg']['f1-score']:.2%}",
+                        'Suporte': int(report['weighted avg']['support'])
+                    })
+
+                    trained_models[name] = model
+                    
                 except Exception as e:
                     st.error(f"Erro no modelo {name}: {str(e)}")
 
@@ -116,19 +153,10 @@ with tab1:
             st.header("📈 Análise de Desempenho dos Modelos")
             
             with st.expander("🔍 Métricas Comparativas", expanded=True):
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.markdown("### Tabela de Métricas")
-                    results_df = pd.DataFrame(model_results).set_index('Model')
-                    st.dataframe(results_df.style.format("{:.2%}"), height=300)
-                
-                with col2:
-                    st.markdown("### Desempenho Visual")
-                    fig, ax = plt.subplots(figsize=(10, 6))
-                    results_df.plot(kind='bar', ax=ax, rot=45)
-                    plt.ylabel('Score')
-                    plt.tight_layout()
-                    st.pyplot(fig)
+            
+                st.markdown("### Tabela de Métricas")
+                results_df = pd.DataFrame(model_results)[['Modelo', 'Classe', 'Precisão', 'recall', 'F1-Score', 'Suporte']]
+                st.dataframe(results_df, height=500)
 
             # Seção de Visualizações
             tab1, tab3 = st.tabs(["📊 Matriz de Confusão", "🎮 Simulador"])
