@@ -60,17 +60,17 @@ fig, (axB, ax) = plt.subplots(nrows=2, figsize=(12, 10))  # Ajuste de tamanho do
 
 # Gráfico para o número de cidades em cada país com base nos dados ruins
 data_bad["country"].value_counts()[0:15].plot(kind='bar', color="blue", ax=axB)  # Alterei para 'bar' (barras verticais)
-axB.set_title("Número de cidades por cada país com base nos dados ruins", color='black')  # Cor do título em preto
-axB.tick_params(axis='x', colors='black')  # Cor dos rótulos do eixo X em preto
-axB.tick_params(axis='y', colors='black')  # Cor dos rótulos do eixo Y em preto
+axB.set_title("Número de cidades por cada país com base nos dados ruins")  # Alterado para cor automática
+axB.tick_params(axis='x')  # Cor dos rótulos do eixo X em preto
+axB.tick_params(axis='y')  # Cor dos rótulos do eixo Y em preto
 axB.set_facecolor('none')  # Cor de fundo do gráfico transparente
 fig.patch.set_alpha(0)  # Definir o fundo do gráfico como transparente
 
 # Gráfico para o número de cidades em cada país com base nos dados bons
 data_good["country"].value_counts()[0:15].plot(kind='bar', color="blue", ax=ax)  # Alterei para 'bar' (barras verticais)
-ax.set_title("Número de cidades por cada país com base nos dados bons", color='black')  # Cor do título em preto
-ax.tick_params(axis='x', colors='black')  # Cor dos rótulos do eixo X em preto
-ax.tick_params(axis='y', colors='black')  # Cor dos rótulos do eixo Y em preto
+ax.set_title("Número de cidades por cada país com base nos dados bons")  # Cor do título em preto
+ax.tick_params(axis='x')  # Cor dos rótulos do eixo X em preto
+ax.tick_params(axis='y')  # Cor dos rótulos do eixo Y em preto
 ax.set_facecolor('none')  # Cor de fundo do gráfico transparente
 fig.patch.set_alpha(0)  # Definir o fundo do gráfico como transparente
 
@@ -128,13 +128,14 @@ with col2:
     st.pyplot(fig5)  # Exibir no Streamlit
 
 
-st.write("Podemos notar certos padrões e anomalidades:")
-st.write("-Nos dados ruins, algumas das colunas com mais dados faltantes são percebidas nas colunas x28 e x29, respectivamente one way ticket e monthly pass, que são passagens de transporte padronizados e passes para uso ilimitados")
-st.write("-Muitas cidades não contém um transporte público uniformizado e padronizado, por isso nao fornecem essas informação nos casos")
-st.write("-Acerca da anomalia na coluna x40, sobre o preço do aluguel da quadra de tênis, o acesso a uma quadra de tênis em muitas cidades pode ser difícil devido a escassez de quadras, o que pode explicar a falta de informações sobre")
-st.write("-Quanto as colunas x52 e x53, referentes ao metro qudrado fora e dentro da cidade, em muitos locais as áreas para comprar são desvalorizadas devido a localidades monótonas")
-st.write("-na good data a variável x43 é o custo anual do IPS (Escola Primária Internacional) para uma criança em dólares americanos. Não se deve ficar surpreso com a falta desta estatística no subconjunto de dados bons, uma vez que a maioria das cidades não fornece estes serviços")
- 
+st.write("Podemos notar certos padrões e anomalias:")
+st.write("- Nos dados ruins, algumas das colunas com mais dados faltantes são percebidas nas colunas **x28** e **x29**, respectivamente *one way ticket* e *monthly pass*, que são passagens de transporte padronizadas e passes para uso ilimitado.")
+st.write("- Muitas cidades não contêm um transporte público uniformizado e padronizado, por isso não fornecem essas informações.")
+st.write("- Acerca da anomalia na coluna **x40**, sobre o preço do aluguel da quadra de tênis, o acesso a uma quadra de tênis em muitas cidades pode ser difícil devido à escassez de quadras, o que pode explicar a falta de informações.")
+st.write("- Quanto às colunas **x52** e **x53**, referentes ao metro quadrado fora e dentro da cidade, em muitos locais as áreas para comprar são desvalorizadas devido a localidades monótonas.")
+st.write("- Na *good data*, a variável **x43** é o custo anual do *IPS* (Escola Primária Internacional) para uma criança em dólares americanos. Não se deve ficar surpreso com a falta desta estatística no subconjunto de dados bons, uma vez que a maioria das cidades não fornece estes serviços.")
+
 st.write("")
 
 st.write("Os dados faltantes no dataset não comprometem a funcionalidade principal do aplicativo, pois o sistema foi projetado para lidar com ausências de informações de maneira robusta, utilizando técnicas de tratamento e filtragem de dados que garantem que as funcionalidades essenciais, como visualizações, cálculos e análises, sejam realizadas sem interferência.")
+
