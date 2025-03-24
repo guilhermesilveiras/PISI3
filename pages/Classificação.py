@@ -10,11 +10,12 @@ from sklearn.impute import SimpleImputer
 from sklearn.pipeline import make_pipeline
 import matplotlib.pyplot as plt
 import seaborn as sns
+import shap
 
 # Configuração inicial
 st.set_page_config(page_title="Classificador de Custos de Viagem")
 
-tab1, tab2 = st.tabs(["Classificação", "Normalização e Encoding dos Dados"])
+tab1, tab2, tab3 = st.tabs(["Classificação", "Normalização e Encoding dos Dados", "Análise SHAP"])
 
 with tab1:
 
@@ -46,7 +47,7 @@ with tab1:
         return df
 
     def main():
-        plt.style.use('dark_background')
+        plt.style.use('default')  # Use estilo padrão para fundo claro
         st.title("🌍 Classificação de padrões de gastos em viagens")
         
         st.markdown("""
@@ -291,3 +292,86 @@ with tab2:
         st.pyplot(fig)
     else:
         st.write("Nenhum dado disponível para exibição no heatmap.")
+
+with tab3:
+    st.title("Análise SHAP do Modelo Random Forest")
+    st.write("""
+    ### O que é SHAP?
+    SHAP (SHapley Additive exPlanations) é um método baseado na teoria dos jogos que explica as previsões dos modelos de Machine Learning.
+    Ele atribui a cada feature uma contribuição para a decisão final do modelo, permitindo entender melhor como os dados afetam a predição.
+
+    ### Gráficos SHAP
+    Os gráficos SHAP abaixo mostram a importância de cada feature para o modelo Random Forest, separados pelas classes apresentadas em nossa classificação.
+    """)
+
+    # Carregar e preparar dados
+    df = pd.read_csv("data_cleaned.csv")
+    numeric_cols = [col for col in df.columns if col.startswith('x') and col not in ['x55']]
+    
+    df[numeric_cols] = df[numeric_cols].apply(pd.to_numeric, errors='coerce')
+    df = df.dropna(subset=numeric_cols, how='any').reset_index(drop=True)  # Remover cidades com valores nulos
+    df = criar_labels_reais(df)
+
+    # Divisão dos dados
+    X = df[numeric_cols]
+    y = df['real_class']
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)
+
+    # Pipeline de pré-processamento
+    preprocessor = make_pipeline(
+        SimpleImputer(strategy='median'),
+        StandardScaler()
+    )
+
+    X_train_scaled = preprocessor.fit_transform(X_train)
+    X_test_scaled = preprocessor.transform(X_test)
+
+    # Treinar o modelo Random Forest
+    rf_model = RandomForestClassifier(n_estimators=300, class_weight='balanced', max_depth=10, random_state=42)
+    rf_model.fit(X_train_scaled, y_train)
+
+    # Criar o objeto SHAP explainer
+    explainer = shap.Explainer(rf_model, X_train_scaled)
+    shap_values = explainer(X_test_scaled, check_additivity=False)
+
+    # Renomear as features
+    feature_names = [
+        "Meal, Inexpensive Restaurant", "Meal for 2 People", "McMeal at McDonalds", "Domestic Beer",
+        "Imported Beer", "Cappuccino", "Coke/Pepsi", "Water", "Milk", "Loaf of Fresh White Bread",
+        "Rice", "Eggs", "Local Cheese", "Chicken Fillets", "Beef Round", "Apples", "Banana", "Oranges",
+        "Tomato", "Potato", "Onion", "Lettuce", "Water (1.5 liter bottle)", "Bottle of Wine",
+        "Domestic Beer (market)", "Imported Beer (market)", "Cigarettes 20 Pack", "One-way Ticket",
+        "Monthly Pass", "Taxi Start", "Taxi 1km", "Taxi 1hour Waiting", "Gasoline", "Volkswagen Golf",
+        "Toyota Corolla", "Basic Utilities", "Prepaid Mobile Tariff", "Internet", "Fitness Club",
+        "Tennis Court Rent", "Cinema", "Preschool", "International Primary School", "1 Pair of Jeans",
+        "1 Summer Dress", "1 Pair of Nike Running Shoes", "1 Pair of Men Leather Business Shoes",
+        "Apartment (1 bedroom, City Centre)", "Apartment (1 bedroom, Outside Centre)", "Apartment (3 bedrooms, City Centre)",
+        "Apartment (3 bedrooms, Outside Centre)", "Price per Square Meter (City Centre)", "Price per Square Meter (Outside Centre)",
+        "Average Monthly Net Salary", "Mortgage Interest Rate"
+    ]
+
+    # Excluir a feature 0
+    shap_values = shap_values[:, 1:]
+    X_test_scaled = X_test_scaled[:, 1:]
+
+    # Plotar gráficos SHAP para cada classe
+    classes = rf_model.classes_
+    for i, class_name in enumerate(classes):
+        st.write(f"### Gráfico SHAP para a classe: {class_name}")
+        plt.style.use('default')  # Use estilo padrão para fundo claro
+        fig, ax = plt.subplots(figsize=(10, 6))
+        shap.summary_plot(shap_values[:, :, i], X_test_scaled, feature_names=feature_names, plot_type="dot", show=False)
+        plt.title(f'Gráfico SHAP do Modelo Random Forest - Classe: {class_name}', fontsize=16)
+        plt.xlabel('SHAP Value (Impact on Model Output)', fontsize=12)
+        plt.ylabel('Feature', fontsize=12)
+        st.pyplot(fig)
+
+    # Explicação das classes
+    st.write("""
+    As classes presentes nas métricas do SHAP representam diferentes categorias de custo de vida para viajantes:
+    
+    - **Premium Travel**: Alto padrão de vida, com altos custos de aluguel e salário médio.
+    - **City Explorer Luxury**: Foco em atividades culturais e de lazer, com custos elevados nessas áreas.
+    - **Mid-range Nomad**: Equilíbrio entre custo e qualidade de vida, sem extremos em nenhuma categoria.
+    - **Backpacker Budget**: Foco em economia, com baixos custos em alimentação e transporte.
+    """)
