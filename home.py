@@ -29,7 +29,28 @@ st.write("""
 
 st.markdown(
     """
-    <div style='border: 2px solid #000000; padding: 10px; border-radius: 5px; background-color: #000000;'>
+    <style>
+        .student-box {
+            border: 2px solid #000000;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: var(--background-color);
+            color: var(--text-color);
+        }
+        @media (prefers-color-scheme: dark) {
+            .student-box {
+                --background-color: #333333;
+                --text-color: #FFFFFF;
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .student-box {
+                --background-color: #FFFFFF;
+                --text-color: #000000;
+            }
+        }
+    </style>
+    <div class='student-box'>
         <strong>Alunos:</strong>
         <ul>
             <li>Diego Clebson</li>
